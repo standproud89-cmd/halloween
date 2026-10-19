@@ -509,8 +509,6 @@ function HalloweenEvent({ onPhase }) {
   };
   // 문이 열린 화면에서 "탈출 시작" → 영상 이어서 재생 → 끝나면 바로 게임 시작
   const beginFromGate = () => {
-    // 전체화면으로 전환해 주소창·탭 등 브라우저 UI를 숨김 (지원 안 되면 무시)
-    try { const el = document.documentElement; if (!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(() => {}); } catch { /* ignore */ }
     autoStartRef.current = true; startCinema();
   };
   const startCinema = () => {
