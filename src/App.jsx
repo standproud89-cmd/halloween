@@ -35,6 +35,8 @@ const HW_GATE_PAUSE = 5.0; // 문이 활짝 열린 뒤 멈추는 시점(초)
 const HW_INTRO_VIDEO = `${import.meta.env.BASE_URL}halloween-intro.mp4`;
 const HW_FAIL_VIDEO = `${import.meta.env.BASE_URL}halloween-fail.mp4`;
 const HW_BGM = `${import.meta.env.BASE_URL}halloween-bgm.mp3`;
+const HW_LAUGH = `${import.meta.env.BASE_URL}halloween-laugh.wav`; // 실패 화면: 모니터가 깨질 때부터 '처음으로' 누를 때까지 반복
+const HW_LAUGH_AT = 3.45; // 실패 영상에서 사신이 모니터를 깨는 시점(초)
 const HW_THUNDER = `${import.meta.env.BASE_URL}halloween-thunder.mp3`; // 성공 화면에서 놀라게 하는 천둥소리
 const HW_TIME_LIMIT = 300; // 전체 제한 시간(초) = 5분
 const HW_PLAYERS = [
@@ -432,12 +434,30 @@ function HalloweenEvent({ onPhase }) {
     const pr = t.play(); if (pr && pr.catch) pr.catch(() => {});
     return () => { t.pause(); };
   }, [phase]);
+  // 실패 화면: 배경음악은 계속, 그 위에 웃음소리를 끊김 없이 반복 (Web Audio 루프)
+  const laughRef = useRef(null);
+  useEffect(() => {
+    if (phase !== "fail") return undefined;
+    let stopped = false, ctx = null, src = null, buf = null, want = false;
+    const go = () => {
+      if (stopped || !buf || src || !want) return;
+      src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+      const g = ctx.createGain(); g.gain.value = 1;
+      src.connect(g); g.connect(ctx.destination); src.start();
+    };
+    try {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === "suspended") ctx.resume();
+      fetch(HW_LAUGH).then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b)).then((b) => { buf = b; go(); }).catch(() => {});
+    } catch (e) { /* 소리 없이 진행 */ }
+    laughRef.current = { start: () => { want = true; if (ctx && ctx.state === "suspended") ctx.resume(); go(); } };
+    return () => { stopped = true; laughRef.current = null; try { if (src) src.stop(); } catch (e) {} try { if (ctx) ctx.close(); } catch (e) {} };
+  }, [phase]);
   useEffect(() => {
     const a = bgmAudioRef.current;
     if (!a) return;
-    if (phase === "fail") { a.pause(); return; } // 실패 영상은 자체 사운드만
     if (a.paused) { const pr = a.play(); if (pr && pr.catch) pr.catch(() => {}); }
-    a.volume = phase === "playing" && stageIdx === 1 ? 0.35 : 0.55; // 피아노 타일(자체 음)만 조금 낮춤
+    a.volume = phase === "fail" ? 0.4 : phase === "playing" && stageIdx === 1 ? 0.35 : 0.55; // 피아노 타일(자체 음)만 조금 낮춤
   }, [phase, stageIdx]);
 
   // ---- 제한 시간 ----
@@ -810,8 +830,9 @@ function HalloweenEvent({ onPhase }) {
               autoPlay
               playsInline
               preload="auto"
-              onEnded={() => setFailEnded(true)}
-              onError={() => setFailEnded(true)}
+              onTimeUpdate={(e) => { if (e.currentTarget.currentTime >= HW_LAUGH_AT && laughRef.current) laughRef.current.start(); }}
+              onEnded={() => { setFailEnded(true); if (laughRef.current) laughRef.current.start(); }}
+              onError={() => { setFailEnded(true); if (laughRef.current) laughRef.current.start(); }}
               className="absolute inset-0 w-full h-full"
               style={{ objectFit: "contain" }}
             />
