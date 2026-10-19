@@ -97,20 +97,22 @@ const SONGS={
       const need=lv?80:60,out=[];let c=0;
       while(out.length<need){const ch=chords[c%chords.length];for(let r=0;r<2;r++)ch.forEach(n=>out.push(n));c++;}
       return out.slice(0,need).join(' ');}},
+  rush:{name:'피아노 타일',bpm:[135,155],
+    gen:(lv)=>{const N=['C4','D4','E4','G4','A4','C5','D5','E5'];const o=[];let p=-1;while(o.length<140){let k;do{k=Math.floor(Math.random()*N.length);}while(k===p);p=k;o.push(N[k]);}return o.join(' ');}},
   elise:{name:'엘리제를 위하여',bpm:[84,100],
     seq:'E5 D#5 E5 D#5 E5 B4 D5 C5 A4h C4 E4 A4 B4h E4 G#4 B4 C5h E4 E5 D#5 E5 D#5 E5 B4 D5 C5 A4h C4 E4 A4 B4h E4 C5 B4 A4h E5 D#5 E5 D#5 E5 B4 D5 C5 A4h C4 E4 A4 B4h E4 G#4 B4 C5h E4 E5 D#5 E5 D#5 E5 B4 D5 C5 A4h C4 E4 A4 B4h E4 C5 B4 A4h'},
   spooky:{name:'유령의 집',bpm:[100,128],
     seq:'A3 C4 E4 A4 E4 C4 A3h G#3 B3 E4 G#4 E4 B3 G#3h A3 C4 E4 A4 B4 C5 B4 A4 G#4 A4h'}
 };
-const SPEED=[330,500];       // px/s (쉬움, 어려움)
-const HEARTS=[6,4];
+const SPEED=[700,820];       // px/s (쉬움, 어려움)
+const HEARTS=[8,6];
 const MULTI=[0,0];
 const MAXLEN=54;
 const LEAD=2.1;               // 첫 타일이 도착할 때까지(초)
 
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 const $=id=>document.getElementById(id);
-let songId='elise',level=0,G=null,audio=null,raf=0;
+let songId='rush',level=0,G=null,audio=null,raf=0;
 const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
 
 // ---------- 소리 ----------
@@ -161,7 +163,7 @@ function build(auto){
     const lane=group.shift();prevLane=lane;
     let sub;do{sub=Math.floor(Math.random()*SUB);}while(sub===lastSub[lane]);lastSub[lane]=sub;
     const mk=(ln,sb,dt,fr,lb)=>tiles.push({i:tiles.length,gid:i,lane:ln,sub:sb,t:tt+dt,freq:fr,label:lb,state:'pending',botSkip:Math.random()<.07,botOff:(Math.random()-.4)*.07});
-    mk(lane,sub,0,n.freq,n.label);
+    mk(lane,sub,0,n.freq,'');
     if(Math.random()<MULTI[level]){
       const cnt=level?(Math.random()<.5?3:2):(Math.random()<.35?2:1),R=[1.2599,1.4983,2],usedBy={};usedBy[lane]=[sub];
       for(let k=0;k<cnt;k++){
@@ -359,7 +361,7 @@ const st=document.createElement('style');
 st.textContent='.app>div:first-child,.ctrl,.legend,.note,h1,.sub,#again,#home,#bAuto,#bStop{display:none!important}html,body{background:#000!important;overflow:hidden!important}body{padding:0!important}.app{max-width:none!important;gap:0!important}.stage{border:none!important;border-radius:0!important;min-height:643px}.panel{max-width:960px!important}.panel h2{font-size:76px!important;margin-bottom:14px!important}.panel p{font-size:30px!important;line-height:1.5!important;margin-bottom:22px!important}.big{font-size:36px!important;padding:20px 70px!important}';
 document.body.appendChild(st);
 let sent=false;
-const chk=()=>{if(sent)return;for(const id of ['ov','fin','ovEnd']){const el=document.getElementById(id);if(el&&!el.hidden){const m=(el.innerText||'').match(/[\u2B50\u2606]{3}/);if(m){sent=true;el.style.visibility='hidden';const stars=(m[0].match(/\u2B50/g)||[]).length;setTimeout(()=>parent.postMessage({hw:'done',stars},'*'),700);}}}};
+const chk=()=>{if(sent)return;for(const id of ['ov','fin','ovEnd']){const el=document.getElementById(id);if(el&&!el.hidden){const m=(el.innerText||'').match(/[\u2B50\u2606]{3}/);if(m){sent=true;el.style.visibility='hidden';const stars=(m[0].match(/\u2B50/g)||[]).length;setTimeout(()=>parent.postMessage({hw:'done',stars},'*'),250);}}}};
 new MutationObserver(chk).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
 const rep=()=>{const s=document.getElementById('stage');if(s)parent.postMessage({hw:'h',h:Math.ceil(s.getBoundingClientRect().height)},'*');};
 addEventListener('resize',rep);const stg=document.getElementById('stage');if(window.ResizeObserver&&stg)new ResizeObserver(rep).observe(stg);setInterval(rep,400);rep();

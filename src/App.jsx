@@ -161,7 +161,7 @@ function HwBloodHand({ pressed }) {
 }
 
 /* ---------- Stage 1: 손도장의 문 (한 명씩 손을 얹고, 테두리가 다 찰 때까지 꾹) ---------- */
-const HW_HAND_HOLD = 3000; // 손도장 하나당 눌러야 하는 시간(ms)
+const HW_HAND_HOLD = 1500; // 손도장 하나당 눌러야 하는 시간(ms)
 function StageHands({ level, onClear }) {
   const need = HW_HAND_HOLD;
   const down = useRef([new Set(), new Set(), new Set(), new Set()]);
@@ -260,17 +260,19 @@ function StageHands({ level, onClear }) {
 }
 
 /* ---------- 미션 게임 (별도 HTML을 iframe으로 불러와 종료 시 별 개수를 받음) ---------- */
-function StageGame({ id, onFinish }) {
-  const [h, setH] = useState(620);
+function StageGame({ id, active, fade, onFinish }) {
+  const [h, setH] = useState(644);
   const ref = useRef(null);
   const finishRef = useRef(onFinish);
   finishRef.current = onFinish;
+  const activeRef = useRef(active);
+  activeRef.current = active;
   useEffect(() => {
     const on = (e) => {
       if (!ref.current || e.source !== ref.current.contentWindow) return;
       const d = e.data || {};
       if (d.hw === "h" && d.h) setH(d.h);
-      if (d.hw === "done") finishRef.current(d.stars || 0);
+      if (d.hw === "done" && activeRef.current) finishRef.current(d.stars || 0);
     };
     window.addEventListener("message", on);
     return () => window.removeEventListener("message", on);
@@ -278,7 +280,9 @@ function StageGame({ id, onFinish }) {
   const map = typeof window !== "undefined" ? window.__HW_SRCDOC : null;
   const src = map && map[id] ? { srcDoc: map[id] } : { src: `${import.meta.env.BASE_URL}halloween-games/${id}.html?embed=1` };
   return (
-    <div className="mx-auto overflow-hidden" style={{ width: HW_GAME_W, borderRadius: 24, border: "2px solid #2b0e0e", backgroundColor: "#000" }}>
+    <div className="mx-auto overflow-hidden" style={{ gridArea: "1 / 1", width: HW_GAME_W, borderRadius: 24, border: "2px solid #2b0e0e", backgroundColor: "#000",
+      opacity: active && !fade ? 1 : 0, visibility: active ? "visible" : "hidden", pointerEvents: active && !fade ? "auto" : "none",
+      transition: `opacity ${active && !fade ? 0.45 : 0.4}s ease, visibility 0s linear ${active ? "0s" : "0.4s"}` }}>
       <iframe ref={ref} title={id} allow="autoplay" {...src}
         style={{ width: HW_GAME_W, height: h, border: 0, display: "block", backgroundColor: "#000", touchAction: "none" }} />
     </div>
@@ -478,7 +482,7 @@ function HalloweenEvent({ onPhase }) {
       }
       clearedRef.current = false;
       setCleared(false);
-    }, 500);
+    }, 650);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const finishGame = useCallback((stars) => clearStage(stars >= 1), [clearStage]);
@@ -650,7 +654,7 @@ function HalloweenEvent({ onPhase }) {
       className="w-full block hw-root"
       onContextMenu={(e) => e.preventDefault()}
     >
-      <div className={phase === "playing" ? (stageIdx >= 1 ? "mx-auto px-3 py-2" : "mx-auto px-6 py-6") : (phase === "gate" || phase === "cinema" || phase === "intro" || phase === "fail") ? "mx-auto" : "mx-auto px-6 py-6"} style={{ width: phase === "playing" ? (stageIdx >= 1 ? HW_GAME_W + 24 : HW_ARENA_W + 48) : (phase === "gate" || phase === "cinema" || phase === "intro" || phase === "fail") ? 1152 : undefined, maxWidth: phase === "playing" ? undefined : 1152 }}>
+      <div className={phase === "playing" ? "mx-auto px-3 py-2" : (phase === "gate" || phase === "cinema" || phase === "intro" || phase === "fail") ? "mx-auto" : "mx-auto px-6 py-6"} style={{ width: phase === "playing" ? HW_GAME_W + 24 : (phase === "gate" || phase === "cinema" || phase === "intro" || phase === "fail") ? 1152 : undefined, maxWidth: phase === "playing" ? undefined : 1152 }}>
         {(phase === "gate" || phase === "cinema" || phase === "intro") && createPortal(
           <HwFullBleed><div
             className="relative overflow-hidden mx-auto"
@@ -749,8 +753,15 @@ function HalloweenEvent({ onPhase }) {
               </span>
             </div>
 
-            {stageIdx === 0 && <StageHands key="s0" {...stageProps} />}
-            {stageIdx >= 1 && <StageGame key={`g${stageIdx}`} id={HW_STAGES[stageIdx].id} onFinish={finishGame} />}
+            {stageIdx === 0 && (
+              <div className="mx-auto" style={{ width: HW_ARENA_W }}><StageHands key="s0" {...stageProps} /></div>
+            )}
+            {/* 5개 게임을 미리 불러와 겹쳐 두고, 차례가 되면 부드럽게 전환 (로딩 버벅임 방지) */}
+            <div style={{ display: "grid", ...(stageIdx === 0 ? { position: "absolute", left: 0, top: 0, height: 0, overflow: "hidden", visibility: "hidden", pointerEvents: "none" } : {}) }}>
+              {HW_STAGES.slice(1).map((s, i) => (
+                <StageGame key={s.id} id={s.id} active={stageIdx === i + 1} fade={cleared} onFinish={finishGame} />
+              ))}
+            </div>
 
           </div>
         )}
