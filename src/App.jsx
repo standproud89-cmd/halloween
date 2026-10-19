@@ -160,14 +160,17 @@ function HwBloodHand({ pressed }) {
   );
 }
 
-/* ---------- Stage 1: 손도장의 문 (4명이 동시에 꾹) ---------- */
+/* ---------- Stage 1: 손도장의 문 (한 명씩 손을 얹고, 테두리가 다 찰 때까지 꾹) ---------- */
+const HW_HAND_HOLD = 3000; // 손도장 하나당 눌러야 하는 시간(ms)
 function StageHands({ level, onClear }) {
-  const need = level === "hard" ? 5000 : 3000;
+  const need = HW_HAND_HOLD;
   const down = useRef([new Set(), new Set(), new Set(), new Set()]);
-  const holdRef = useRef(0);
-  const doneRef = useRef(false);
+  const holdRef = useRef([0, 0, 0, 0]);
+  const doneRef = useRef([false, false, false, false]);
+  const clearedRef = useRef(false);
   const [pressed, setPressed] = useState([false, false, false, false]);
-  const [hold, setHold] = useState(0);
+  const [hold, setHold] = useState([0, 0, 0, 0]);
+  const [done, setDone] = useState([false, false, false, false]);
   const sync = () => setPressed(down.current.map((s) => s.size > 0));
   const onDown = (i, e) => {
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* ignore */ }
@@ -180,52 +183,73 @@ function StageHands({ level, onClear }) {
   };
 
   useInterval(() => {
-    if (doneRef.current) return;
-    const all = down.current.every((s) => s.size > 0);
-    holdRef.current = all ? holdRef.current + 50 : 0;
-    setHold(holdRef.current);
-    if (holdRef.current >= need) {
-      doneRef.current = true;
-      onClear();
+    if (clearedRef.current) return;
+    let changed = false;
+    for (let i = 0; i < 4; i++) {
+      if (doneRef.current[i]) continue;
+      const isDown = down.current[i].size > 0;
+      const prev = holdRef.current[i];
+      // 누르고 있으면 차오르고, 중간에 떼면 빠르게 비워짐
+      let next = isDown ? prev + 50 : Math.max(0, prev - 150);
+      if (next >= need) { next = need; doneRef.current[i] = true; changed = true; }
+      holdRef.current[i] = next;
+    }
+    setHold([...holdRef.current]);
+    if (changed) setDone([...doneRef.current]);
+    if (doneRef.current.every(Boolean)) {
+      clearedRef.current = true;
+      setTimeout(onClear, 900);
     }
   }, 50);
 
-  const cnt = pressed.filter(Boolean).length;
-  const pct = Math.min(100, (hold / need) * 100);
+  const R = 150, CIRC = 2 * Math.PI * R;
+  const total = holdRef.current.reduce((a, b) => a + b, 0);
+  const pct = Math.min(100, (total / (need * 4)) * 100);
   return (
     <>
       <HwInstruction
         eerie icon="" title="손도장의 문"
-        text={`네 사람이 동시에 자기 손도장 위에 손을 얹고 ${need / 1000}초 동안 떼지 마세요.`}
+        text="한 사람씩 자기 손도장 위에 손을 얹고, 테두리가 가득 찰 때까지 떼지 마세요."
       />
       <HwArena eerie>
-        {HW_PLAYERS.map((p, i) => (
-          <div
-            key={i}
-            onPointerDown={(e) => onDown(i, e)}
-            onPointerUp={(e) => onUp(i, e)}
-            onPointerCancel={(e) => onUp(i, e)}
-            className="absolute rounded-full flex items-center justify-center"
-            style={{
-              left: i * HW_LANE_W + (HW_LANE_W - 240) / 2,
-              top: 100,
-              width: 240,
-              height: 260,
-              borderRadius: 40,
-              touchAction: "none",
-              backgroundColor: "transparent",
-              backgroundImage: pressed[i] ? "radial-gradient(ellipse at 50% 45%, rgba(170,0,0,.38) 0%, rgba(0,0,0,0) 70%)" : "none",
-              border: "none",
-              transition: "background-image .3s",
-            }}
-          >
-            <HwBloodHand pressed={pressed[i]} />
-          </div>
-        ))}
+        {HW_PLAYERS.map((p, i) => {
+          const prog = hold[i] / need;
+          const lit = pressed[i] || done[i];
+          return (
+            <div
+              key={i}
+              onPointerDown={(e) => onDown(i, e)}
+              onPointerUp={(e) => onUp(i, e)}
+              onPointerCancel={(e) => onUp(i, e)}
+              className="absolute flex items-center justify-center"
+              style={{
+                left: i * HW_LANE_W + (HW_LANE_W - 240) / 2,
+                top: 100,
+                width: 240,
+                height: 260,
+                borderRadius: 40,
+                touchAction: "none",
+                backgroundColor: "transparent",
+                backgroundImage: lit ? "radial-gradient(ellipse at 50% 45%, rgba(170,0,0,.38) 0%, rgba(0,0,0,0) 70%)" : "none",
+                border: "none",
+                transition: "background-image .3s",
+              }}
+            >
+              {/* 손 주변 원형 테두리: 누르는 동안 시계 방향으로 차오름 */}
+              <svg width="320" height="320" viewBox="0 0 320 320"
+                style={{ position: "absolute", left: -40, top: -30, pointerEvents: "none", overflow: "visible" }}>
+                <circle cx="160" cy="160" r={R} fill="none" stroke="#2a0a0c" strokeWidth="7" />
+                <circle cx="160" cy="160" r={R} fill="none"
+                  stroke={done[i] ? "#ff3a3a" : "#c4161c"} strokeWidth={done[i] ? 10 : 8} strokeLinecap="round"
+                  strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - prog)}
+                  transform="rotate(-90 160 160)"
+                  style={{ filter: prog > 0 ? `drop-shadow(0 0 ${done[i] ? 14 : 8}px #b00000)` : "none" }} />
+              </svg>
+              <HwBloodHand pressed={lit} />
+            </div>
+          );
+        })}
         <div className="absolute left-10 right-10 bottom-8">
-          <div className="text-center text-2xl mb-3" style={{ color: cnt === 4 ? "#e23a3a" : "#7d7777", letterSpacing: "0.04em", fontFamily: "'Pretendard', sans-serif", fontWeight: 700 }}>
-            {cnt === 4 ? `봉인이 풀리고 있다… ${(hold / 1000).toFixed(1)}초` : "\u00a0"}
-          </div>
           <div className="h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: "#140808", border: "1px solid #3a1212" }}>
             <div className="h-full" style={{ width: `${pct}%`, backgroundColor: "#a30f14", boxShadow: "0 0 10px #a30f14", transition: "width .05s linear" }} />
           </div>
