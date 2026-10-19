@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { RotateCcw, Ghost } from "lucide-react";
 
 /* ---------- Design tokens (from GnB CYJ Jr. hexagon identity) ---------- */
@@ -260,6 +261,25 @@ function StageGame({ id, onFinish }) {
   );
 }
 
+/* 영상 화면: 브라우저 창 전체를 덮고(16:9 영상을 cover로 확대), 안내 글자는 같은 배율로 맞춤 */
+function HwFullBleed({ children }) {
+  const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight });
+  useEffect(() => {
+    const on = () => setVp({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener("resize", on);
+    return () => window.removeEventListener("resize", on);
+  }, []);
+  const s = Math.max(vp.w / 1152, vp.h / 648);
+  return (
+    <div style={{ position: "fixed", inset: 0, backgroundColor: "#000", overflow: "hidden", zIndex: 50,
+      fontFamily: "'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif", userSelect: "none", WebkitUserSelect: "none", touchAction: "none" }}>
+      <div style={{ position: "absolute", left: "50%", top: "50%", width: 1152, height: 648, transform: `translate(-50%, -50%) scale(${s})` }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function HalloweenEvent({ onPhase }) {
   const [phase, setPhase] = useState("gate"); // gate | cinema | intro | playing | success | fail
   useEffect(() => { if (onPhase) onPhase(phase); }, [phase, onPhase]);
@@ -510,11 +530,26 @@ function HalloweenEvent({ onPhase }) {
   const onVideoTime = () => {
     const v = videoRef.current;
     if (phase === "gate" && v && !gateReady && v.currentTime >= HW_GATE_PAUSE) {
-      v.pause();
-      try { v.currentTime = HW_GATE_PAUSE; } catch { /* ignore */ }
+      v.pause(); // 되감지 않고 그 자리에서 멈춤 (재생 이어갈 때 끊김 방지)
       setGateReady(true);
     }
   };
+  // 문이 열린 지점에서 프레임 단위로 정확히 멈춤 (timeupdate는 0.25초 간격이라 늦게 멈추고 되감기가 필요했음)
+  useEffect(() => {
+    if (phase !== "gate" || gateReady) return undefined;
+    let raf = 0;
+    const tick = () => {
+      const v = videoRef.current;
+      if (v && !v.paused && v.currentTime >= HW_GATE_PAUSE - 0.04) {
+        v.pause();
+        setGateReady(true);
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [phase, gateReady]);
   const onVideoCanPlay = () => {
     const v = videoRef.current;
     if (!v || phase !== "gate" || cinemaSeenRef.current || gateReady || v.currentTime > 0.5 || !v.paused) return;
@@ -594,8 +629,8 @@ function HalloweenEvent({ onPhase }) {
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className={phase === "playing" ? (stageIdx >= 1 ? "mx-auto px-3 py-2" : "mx-auto px-6 py-6") : (phase === "gate" || phase === "cinema" || phase === "intro" || phase === "fail") ? "mx-auto" : "mx-auto px-6 py-6"} style={{ width: phase === "playing" ? (stageIdx >= 1 ? HW_GAME_W + 24 : HW_ARENA_W + 48) : (phase === "gate" || phase === "cinema" || phase === "intro" || phase === "fail") ? 1152 : undefined, maxWidth: phase === "playing" ? undefined : 1152 }}>
-        {(phase === "gate" || phase === "cinema" || phase === "intro") && (
-          <div
+        {(phase === "gate" || phase === "cinema" || phase === "intro") && createPortal(
+          <HwFullBleed><div
             className="relative overflow-hidden mx-auto"
             style={{ width: 1152, height: 648, backgroundColor: "#000" }}
           >
@@ -616,11 +651,11 @@ function HalloweenEvent({ onPhase }) {
 
             {phase === "cinema" && (
               <div className="absolute inset-x-0 bottom-0 pointer-events-none"
-                style={{ height: 250, background: "linear-gradient(to top, rgba(0,0,0,.88) 0%, rgba(0,0,0,.55) 55%, rgba(0,0,0,0) 100%)" }}>
+                style={{ height: 320, background: "linear-gradient(to top, rgba(0,0,0,.88) 0%, rgba(0,0,0,.55) 55%, rgba(0,0,0,0) 100%)" }}>
                 {HW_BRIEF.map((b, i) => (
                   <div key={i} className="absolute inset-x-0 text-center px-10"
                     style={{
-                      bottom: 52, opacity: briefIdx === i ? 1 : 0,
+                      bottom: 96, opacity: briefIdx === i ? 1 : 0,
                       transform: briefIdx === i ? "translateY(0)" : "translateY(10px)",
                       transition: "opacity .9s ease, transform .9s ease",
                       fontFamily: "'East Sea Dokdo', 'Nanum Brush Script', 'Pretendard', serif",
@@ -634,15 +669,6 @@ function HalloweenEvent({ onPhase }) {
               </div>
             )}
 
-            {phase === "cinema" && (
-              <button
-                onClick={skipCinema}
-                className="absolute bottom-5 left-5 px-5 py-2 rounded-full font-bold text-base"
-                style={{ backgroundColor: "rgba(0,0,0,.55)", color: "#c9c9cc", border: "1px solid #444", zIndex: 5 }}
-              >
-                건너뛰기 ⏭
-              </button>
-            )}
 
             {(phase === "intro" || phase === "gate") && (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-10"
@@ -674,8 +700,7 @@ function HalloweenEvent({ onPhase }) {
                 </div>
               </div>
             )}
-          </div>
-        )}
+          </div></HwFullBleed>, document.body)}
 
         {phase === "playing" && (
           <div className="relative" key={runKey}>
@@ -732,8 +757,8 @@ function HalloweenEvent({ onPhase }) {
           </div>
         )}
 
-        {phase === "fail" && (
-          <div
+        {phase === "fail" && createPortal(
+          <HwFullBleed><div
             className="relative overflow-hidden mx-auto"
             style={{ width: 1152, height: 648, backgroundColor: "#000" }}
           >
@@ -748,7 +773,7 @@ function HalloweenEvent({ onPhase }) {
               className="absolute inset-0 w-full h-full"
               style={{ objectFit: "contain" }}
             />
-            <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-5 pb-12 transition-opacity duration-1000"
+            <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-5 pb-24 transition-opacity duration-1000"
               style={{ opacity: failEnded ? 1 : 0, pointerEvents: failEnded ? "auto" : "none" }}>
               <p className="text-center" style={{ fontFamily: "'East Sea Dokdo', 'Nanum Brush Script', 'Pretendard', serif", fontSize: 58, lineHeight: 1.25, color: "#d4262c", textShadow: "0 0 22px #7a0000" }}>
                 저주는 풀리지 않았다.<br />너희들은 이 곳에서 나갈 수 없다.
@@ -759,8 +784,7 @@ function HalloweenEvent({ onPhase }) {
                 처음으로 돌아가기
               </button>
             </div>
-          </div>
-        )}
+          </div></HwFullBleed>, document.body)}
       </div>
 
       {toast && (
