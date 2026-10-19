@@ -35,6 +35,7 @@ const HW_GATE_PAUSE = 5.0; // 문이 활짝 열린 뒤 멈추는 시점(초)
 const HW_INTRO_VIDEO = `${import.meta.env.BASE_URL}halloween-intro.mp4`;
 const HW_FAIL_VIDEO = `${import.meta.env.BASE_URL}halloween-fail.mp4`;
 const HW_BGM = `${import.meta.env.BASE_URL}halloween-bgm.mp3`;
+const HW_THUNDER = `${import.meta.env.BASE_URL}halloween-thunder.mp3`; // 성공 화면에서 놀라게 하는 천둥소리
 const HW_TIME_LIMIT = 300; // 전체 제한 시간(초) = 5분
 const HW_PLAYERS = [
   { name: "보라", color: "#B26BE8", dot: "🟣" },
@@ -423,6 +424,14 @@ function HalloweenEvent({ onPhase }) {
     window.addEventListener("pointerdown", onDown, true);
     return () => { window.removeEventListener("pointerdown", onDown, true); a.pause(); bgmAudioRef.current = null; };
   }, []);
+  // 성공 화면: 배경음악 위에 천둥소리를 크게 (깜짝)
+  useEffect(() => {
+    if (phase !== "success") return undefined;
+    const t = new Audio(HW_THUNDER);
+    t.volume = 1;
+    const pr = t.play(); if (pr && pr.catch) pr.catch(() => {});
+    return () => { t.pause(); };
+  }, [phase]);
   useEffect(() => {
     const a = bgmAudioRef.current;
     if (!a) return;
