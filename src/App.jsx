@@ -590,14 +590,14 @@ function HalloweenEvent({ onPhase }) {
   return (
     <div
       style={{ backgroundColor: C.hbg, userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none", touchAction: "none", WebkitTapHighlightColor: "transparent", overscrollBehavior: "none" }}
-      className="w-full inline-block hw-root"
+      className="w-full block hw-root"
       onContextMenu={(e) => e.preventDefault()}
     >
-      <div className={phase === "playing" && stageIdx >= 1 ? "mx-auto px-3 py-2" : "mx-auto px-6 py-6"} style={{ width: phase === "playing" ? (stageIdx >= 1 ? HW_GAME_W + 24 : HW_ARENA_W + 48) : undefined, maxWidth: phase === "playing" ? undefined : 1152 }}>
+      <div className={phase === "playing" ? (stageIdx >= 1 ? "mx-auto px-3 py-2" : "mx-auto px-6 py-6") : (phase === "gate" || phase === "cinema" || phase === "intro" || phase === "fail") ? "mx-auto" : "mx-auto px-6 py-6"} style={{ width: phase === "playing" ? (stageIdx >= 1 ? HW_GAME_W + 24 : HW_ARENA_W + 48) : (phase === "gate" || phase === "cinema" || phase === "intro" || phase === "fail") ? 1152 : undefined, maxWidth: phase === "playing" ? undefined : 1152 }}>
         {(phase === "gate" || phase === "cinema" || phase === "intro") && (
           <div
-            className="relative overflow-hidden rounded-3xl mx-auto"
-            style={{ width: 1152, height: 720, backgroundColor: "#000", border: `1px solid ${C.hborder}` }}
+            className="relative overflow-hidden mx-auto"
+            style={{ width: 1152, height: 648, backgroundColor: "#000" }}
           >
             <video
               ref={videoRef}
@@ -734,8 +734,8 @@ function HalloweenEvent({ onPhase }) {
 
         {phase === "fail" && (
           <div
-            className="relative overflow-hidden rounded-3xl mx-auto"
-            style={{ width: 1152, height: 720, backgroundColor: "#000", border: `1px solid ${C.hborder}` }}
+            className="relative overflow-hidden mx-auto"
+            style={{ width: 1152, height: 648, backgroundColor: "#000" }}
           >
             <video
               key="failvideo"
