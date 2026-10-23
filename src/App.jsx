@@ -765,7 +765,7 @@ function HalloweenEvent({ onPhase }) {
               </span>
               <span />{/* 상단 자물쇠 표시는 제거 (열림 여부는 내부에서만 판정) */}
               <span className="text-4xl font-black tabular-nums"
-                style={{ visibility: stageIdx === 0 ? "hidden" : "visible", justifySelf: "end", color: "#e0262e", textShadow: "0 0 12px rgba(160,0,0,.55)", animation: remaining <= 30 ? "pulseGlow 1s ease-in-out infinite" : "none" }}>
+                style={{ visibility: stageIdx === 0 ? "hidden" : "visible", justifySelf: "end", color: "#9a1c22", textShadow: "none", animation: remaining <= 30 ? "pulseGlow 1s ease-in-out infinite" : "none" }}>
                 ⏱ {fmtClock(remaining)}
               </span>
             </div>
