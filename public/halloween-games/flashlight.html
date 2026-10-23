@@ -112,7 +112,7 @@ function start(){
   const cl=[0,1,2].sort(()=>Math.random()-.5);
   G={t0:performance.now(),nums,stage:0,code:digs.join(''),entry:[],wrong:0,phase:'search',over:false,lastSec:99,scaring:false,warnUntil:0,pauseAt:0,
      swapAt:-1,lastK:-1,advAt:0,fadeAt:0,
-     plan:[],popOn:false,pops:(()=>{const o=[0,1,2,3].sort(()=>Math.random()-.5);return [rnd(18,38),rnd(58,82),rnd(98,125)].map((at,k)=>({at,img:o[k],done:false}));})()};hidePop();
+     plan:[],popOn:false,pops:(()=>{const o=[0,1,2,3].sort(()=>Math.random()-.5);return [rnd(25,55),rnd(85,120)].map((at,k)=>({at,img:o[k],done:false}));})()};hidePop();
   L={x:W/2,y:H/2};T={x:W/2,y:H/2};lastT=performance.now();
   $('fin').hidden=true;$('keys').style.display='none';$('msg').textContent=`찾은 숫자 0 / ${STAGES}`;
   raf=requestAnimationFrame(loop);
