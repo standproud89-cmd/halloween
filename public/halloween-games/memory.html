@@ -1,4 +1,5 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style id="red">body *{color:#d4262c!important}.hwt .pill{color:#fff!important}</style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script>if(/[?&]embed=1/.test(location.search))document.documentElement.classList.add("emb2")</script>
+<style id="red">.emb2,.emb2 body{background:transparent!important}body *{color:#d4262c!important}.hwt .pill{color:#fff!important}</style>
 </head><body>
 <title>4인 해골 카드 짝 맞추기</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@700;900&display=swap">
@@ -249,11 +250,12 @@ function finish(){
   const th=CFG[level].stars,sc=G.score,stars=sc>=th[2]?3:sc>=th[1]?2:sc>=th[0]?1:0;
   const mx=Math.max(1,...G.P.map(x=>x.score));
   const bars=P.map((p,i)=>`<div style="display:grid;grid-template-columns:54px 1fr 54px;gap:10px;align-items:center;font-size:14px;font-weight:700;margin:6px 0;color:${p.c}"><span>${p.n}</span><div style="height:14px;border-radius:7px;background:#1d1d21;overflow:hidden"><i style="display:block;height:100%;width:${Math.round(G.P[i].score/mx*100)}%;background:${p.c}"></i></div><span>${G.P[i].score}점</span></div>`).join('');
+  if(/[?&]embed=1/.test(location.search)||window.__EMBED){$('fin').innerHTML=`<div class="panel" data-stars="${stars}"><h2>${stars>0?'다음 스테이지':'시간 종료'}</h2></div>`;}else
   $('fin').innerHTML=`<div class="panel"><div style="font-size:clamp(28px,6vw,48px);letter-spacing:.1em">${[0,1,2].map(i=>i<stars?'⭐':'☆').join('')}</div>
   <h2>⏰ 시간 끝!</h2><p>${level?'어려움':'쉬움'} · 팀 점수 <b>${sc}</b> · 완성한 판 <b>${G.P.reduce((a,x)=>a+x.boards,0)}</b>개</p>
   <div style="max-width:420px;margin:0 auto 14px;text-align:left">${bars}</div>
   <button class="big" id="again">↻ 다시 도전</button></div>`;
-  $('fin').hidden=false;$('bStop').disabled=true;$('again').onclick=()=>start(false);$('rd').textContent='⏱ 0초';
+  $('fin').hidden=false;$('bStop').disabled=true;{const ag=$('again');if(ag)ag.onclick=()=>start(false);}$('rd').textContent='⏱ 0초';
 }
 
 // ---------- 자동 시연 봇: 대체로 기억하지만 가끔 틀림 ----------
@@ -298,7 +300,7 @@ const st=document.createElement('style');
 st.textContent='.app>div:first-child,.ctrl,.legend,.note,h1,.sub,#again,#home,#bAuto,#bStop{display:none!important}html,body{overflow:hidden!important}body{padding:0!important}.app{max-width:none!important;gap:0!important}.stage{border:none!important;border-radius:0!important;min-height:643px}.panel{max-width:960px!important}.panel h2{font-size:76px!important;margin-bottom:14px!important}.panel p{font-size:30px!important;line-height:1.5!important;margin-bottom:22px!important}.big{font-size:36px!important;padding:20px 70px!important}';
 document.body.appendChild(st);
 let sent=false;
-const chk=()=>{if(sent)return;for(const id of ['ov','fin']){const el=document.getElementById(id);if(el&&!el.hidden){const m=(el.innerText||'').match(/[\u2B50\u2606]{3}/);if(m){sent=true;el.style.visibility='hidden';const stars=(m[0].match(/\u2B50/g)||[]).length;setTimeout(()=>parent.postMessage({hw:'done',stars},'*'),250);}}}};
+const chk=()=>{if(sent)return;for(const id of ['ov','fin']){const el=document.getElementById(id);if(el&&!el.hidden){const q=el.querySelector('[data-stars]');if(q){sent=true;const stars=+q.getAttribute('data-stars')||0;setTimeout(()=>parent.postMessage({hw:'done',stars},'*'),1800);}}}};
 new MutationObserver(chk).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
 const rep=()=>{const s=document.getElementById('stage');if(s)parent.postMessage({hw:'h',h:Math.ceil(s.getBoundingClientRect().height)},'*');};
 addEventListener('resize',rep);const stg=document.getElementById('stage');if(window.ResizeObserver&&stg)new ResizeObserver(rep).observe(stg);setInterval(rep,400);rep();

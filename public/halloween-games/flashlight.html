@@ -15,7 +15,7 @@ h1{margin:0;font-size:22px;font-weight:900;font-family:'Noto Serif KR',serif}
 .hud .msg{font-weight:900;font-size:17px;color:#d9b65c;font-family:'Noto Serif KR',serif}
 .hud .who{justify-self:end;font-weight:900;font-size:16px;padding:5px 14px;border-radius:4px;color:#0b0b0d;background:#555;min-width:110px;text-align:center;font-family:'Noto Serif KR',serif}
 .tbar{height:7px;background:#120a0a}
-.tbar i{display:block;height:100%;width:100%;background:#D9D2BE;transform-origin:left}
+.tbar i{display:block;height:100%;width:100%;background:#c4262e;transform-origin:left}
 canvas{display:block;width:100%;height:auto;cursor:none;touch-action:none}
 .keys{position:absolute;inset:0;z-index:6;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:12px;background:#030203;text-align:center}.keys h3{margin:0;font:900 clamp(20px,3.2vw,34px) 'Noto Serif KR',serif;color:#c4262e;text-shadow:0 0 18px rgba(196,38,46,.45)}.keys p{margin:0;color:#bdb4a2;font-size:15px}
 .slots{display:flex;gap:8px}
@@ -69,7 +69,7 @@ body *{color:#d4262c!important}.emb .who{display:none!important}
 </div>
 <script>
 (()=>{
-const W=1328,H=747,R=54,TL=7.5,TOTAL=120,STAGES=3,LAG=2.6,INPUT_MIN=20;
+const W=1328,H=747,R=44,TL=7.5,TOTAL=120,STAGES=3,LAG=2.6,INPUT_MIN=20;
 const EMB=/[?&]embed=1/.test(location.search);if(EMB)document.documentElement.classList.add('emb');
 const P=[{n:'백골',c:'#D9D2BE'},{n:'유령',c:'#4FB8AE'},{n:'촛불',c:'#E0A53A'},{n:'저주',c:'#9B6FD6'}];
 const $=id=>document.getElementById(id),cv=$('cv'),ctx=cv.getContext('2d');
@@ -103,8 +103,8 @@ function start(){
   const digs=[8,6,0]; // 방탈출 비밀번호 860
   const nums=order.map((b,i)=>{
     // 숫자 위치: 화면 가장자리 피하고, 시작 손전등 위치(중앙)에서는 멀리
-    let x,y;do{x=rnd(110,W-110);y=rnd(120,H-110);}while(Math.hypot(x-W/2,y-H/2)<260);
-    return {d:digs[i],x,y,rot:rnd(-.16,.16),sz:rnd(22,28),seen:false,vis:0,img:BG[b]};});
+    let x,y;do{x=rnd(80,W-80);y=rnd(110,H-80);}while(Math.hypot(x-W/2,y-H/2)<420);
+    return {d:digs[i],x,y,rot:rnd(-.16,.16),sz:rnd(18,22),seen:false,vis:0,img:BG[b]};});
   const cl=[0,1,2].sort(()=>Math.random()-.5);
   G={t0:performance.now(),nums,stage:0,code:digs.join(''),entry:[],wrong:0,phase:'search',over:false,lastSec:99,scaring:false,warnUntil:0,pauseAt:0,
      swapAt:-1,lastK:-1,advAt:0,fadeAt:0,
@@ -126,8 +126,8 @@ function loop(now){
   }
   const k=1-Math.exp(-LAG*dt);L.x+=(T.x-L.x)*k;L.y+=(T.y-L.y)*k;
   const ti=turnInfo(now),left=Math.max(0,TOTAL-ti.el);
-  $('who').textContent='전원 함께';$('who').style.background='#D9D2BE';
-  $('tb').style.background='#D9D2BE';$('tb').style.transform=`scaleX(${left/TOTAL})`;
+  $('who').textContent='전원 함께';$('who').style.background='#c4262e';
+  $('tb').style.background='#c4262e';$('tb').style.transform=`scaleX(${left/TOTAL})`;
   const sec=Math.ceil(left);$('rd').textContent=`⏱ ${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
   if(sec<=5&&sec!==G.lastSec){G.lastSec=sec;sTick(sec===0?880:660);}
   const n=G.nums[G.stage];
@@ -198,10 +198,11 @@ function finish(ok){
   const stars=ok?(G.wrong<=1?3:G.wrong<=3?2:1):0;
   sEnd(stars>0);$('keys').style.display='none';
   const why=G.phase==='input'?'입력 시간이 끝났어요':'숫자를 다 찾지 못했어요';
+  if(EMB){$('fin').innerHTML=`<div class="panel"><h2>${stars>0?'다음 스테이지':'시간 종료'}</h2></div>`;}else
   $('fin').innerHTML=`<div class="panel"><div class="stars">${[0,1,2].map(i=>i<stars?'⭐':'☆').join('')}</div>
    <h2>${ok?'암호 해제!':'⏰ 실패...'}</h2><p>${ok?`암호는 <b>${G.code}</b> · 틀린 횟수 <b>${G.wrong}</b>번`:`${why} · 정답은 <b>${G.code}</b>`}</p>
    <div style="margin-top:14px"><button class="big" id="again">↻ 다시 하기</button></div></div>`;
-  $('fin').hidden=false;$('again').onclick=showStart;
+  $('fin').hidden=false;if($('again'))$('again').onclick=showStart;
   if(EMB)setTimeout(()=>parent.postMessage({hw:'done',stars},'*'),2200);
 }
 function showStart(){

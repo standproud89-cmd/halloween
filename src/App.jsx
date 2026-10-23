@@ -273,11 +273,11 @@ function StageGame({ id, active, fade, onFinish }) {
   const map = typeof window !== "undefined" ? window.__HW_SRCDOC : null;
   const src = map && map[id] ? { srcDoc: map[id] } : { src: `${import.meta.env.BASE_URL}halloween-games/${id}.html?embed=1` };
   return (
-    <div className="mx-auto overflow-hidden" style={{ gridArea: "1 / 1", width: HW_GAME_W, borderRadius: 24, border: "2px solid #2b0e0e", backgroundColor: "#000",
+    <div className="mx-auto overflow-hidden" style={{ gridArea: "1 / 1", width: HW_GAME_W, borderRadius: id === "memory" ? 0 : 24, border: id === "memory" ? "0" : "2px solid #2b0e0e", backgroundColor: id === "memory" ? "transparent" : "#000",
       opacity: active && !fade ? 1 : 0, visibility: active ? "visible" : "hidden", pointerEvents: active && !fade ? "auto" : "none",
       transition: `opacity ${active && !fade ? 0.45 : 0.4}s ease, visibility 0s linear ${active ? "0s" : "0.4s"}` }}>
       <iframe ref={ref} title={id} allow="autoplay" {...src}
-        style={{ width: HW_GAME_W, height: h, border: 0, display: "block", backgroundColor: "#000", touchAction: "none" }} />
+        style={{ width: HW_GAME_W, height: h, border: 0, display: "block", backgroundColor: id === "memory" ? "transparent" : "#000", touchAction: "none" }} />
     </div>
   );
 }
@@ -639,7 +639,7 @@ function HalloweenEvent({ onPhase }) {
 
   // 손도장 스테이지: 던전 이미지를 화면 전체 배경으로 (끝나면 원래대로)
   useEffect(() => {
-    if (!(phase === "playing" && stageIdx === 0)) return undefined;
+    if (!(phase === "playing" && stageIdx <= 1)) return undefined; // 손도장·카드 단계는 전체 화면 배경
     const els = [document.documentElement, document.body, document.querySelector(".hw-root")?.closest(".h-screen")].filter(Boolean);
     const prev = els.map((e) => [e.style.backgroundColor, e.style.backgroundImage, e.style.backgroundSize, e.style.backgroundPosition, e.style.backgroundAttachment, e.style.backgroundRepeat]);
     const img = `linear-gradient(rgba(0,0,0,.42), rgba(0,0,0,.42)), radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 45%, rgba(0,0,0,.6) 100%), url(${import.meta.env.BASE_URL}halloween-games/bg-dungeon.jpg)`;
@@ -680,7 +680,7 @@ function HalloweenEvent({ onPhase }) {
 
   return (
     <div
-      style={{ backgroundColor: C.hbg, ...(phase === "playing" && stageIdx === 0 ? { backgroundColor: "transparent" } : {}), userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none", touchAction: "none", WebkitTapHighlightColor: "transparent", overscrollBehavior: "none" }}
+      style={{ backgroundColor: C.hbg, ...(phase === "playing" && stageIdx <= 1 ? { backgroundColor: "transparent" } : {}), userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none", touchAction: "none", WebkitTapHighlightColor: "transparent", overscrollBehavior: "none" }}
       className="w-full block hw-root"
       onContextMenu={(e) => e.preventDefault()}
     >

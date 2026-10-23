@@ -47,11 +47,18 @@ addEventListener('resize',fit);fit();
 function post(stars){if(sent)return;sent=true;setTimeout(()=>parent.postMessage({hw:'done',stars},'*'),EMBED?1800:99999999)}
 function slots(){const a=[];for(const x of [0,160])for(let r=0;r<4;r++)a.push([24+x,88+r*(CH+4)]);for(const x of [0,160])for(let r=0;r<4;r++)a.push([1328-24-CW-x,88+r*(CH+4)]);return a}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+let t0=0,solved=0,lastImg='',totalPlaced=0;
 function start(){
- pieces.forEach(p=>p.el.remove());pieces=[];placed=0;left=TIME;sent=false;
- img=IMGS[Math.random()*IMGS.length|0];const url=`url(puzzle/${img}.jpg)`;
+ clearInterval(timer);timer=null;t0=0;solved=0;totalPlaced=0;left=TIME;sent=false;lastImg='';
+ $('ov').hidden=true;$('t').textContent=TIME;$('bi').style.transform='scaleX(1)';
+ round();
+}
+function round(){
+ pieces.forEach(p=>p.el.remove());pieces=[];placed=0;
+ let n;do{n=IMGS[Math.random()*IMGS.length|0]}while(n===lastImg&&IMGS.length>1);img=lastImg=n;
+ const url=`url(puzzle/${img}.jpg)`;
  $('ghost').style.backgroundImage=url;$('full').style.backgroundImage=url;
- $('ov').hidden=true;$('t').textContent=TIME;$('sc').textContent='0 / 12';$('bi').style.transform='scaleX(1)';
+ $('sc').textContent='0 / 12';
  $('cnt').textContent='잘 보고 기억하세요…';$('full').style.opacity=1;$('ghost').style.opacity=0;state='peek';
  const sl=shuffle(slots()).slice(0,12);
  for(let i=0;i<12;i++){const c=i%COLS,r=i/COLS|0,el=document.createElement('div');el.className='pc';
@@ -61,26 +68,27 @@ function start(){
   wrap.appendChild(el);const p={el,c,r,rot,placed:false};pieces.push(p);bind(p)}
  setTimeout(()=>{if(state!=='peek')return;$('full').style.opacity=0;$('ghost').style.opacity=0;pieces.forEach(p=>p.el.style.display='block');
   $('cnt').textContent='조각을 끌어서 제자리에 놓으세요';state='play';
-  timer=setInterval(tick,250);t0=performance.now()},PEEK);
+  if(!timer){t0=performance.now();timer=setInterval(tick,250);}},PEEK);
 }
-let t0=0;
-function tick(){if(state!=='play')return;left=Math.max(0,TIME-(performance.now()-t0)/1000);$('t').textContent=Math.ceil(left);$('bi').style.transform=`scaleX(${left/TIME})`;if(left<=0)end(false)}
+function tick(){if(state==='end')return;left=Math.max(0,TIME-(performance.now()-t0)/1000);$('t').textContent=Math.ceil(left);$('bi').style.transform=`scaleX(${left/TIME})`;if(left<=0)end()}
 function sc(){return EMBED?innerWidth/1328:Math.min(innerWidth/1328,innerHeight/747)}
 function bind(p){const el=p.el;let id=null,ox=0,oy=0;
  el.addEventListener('pointerdown',e=>{if(state!=='play'||p.placed||id!==null)return;id=e.pointerId;el.setPointerCapture(id);const s=sc();ox=e.clientX/s-el.offsetLeft;oy=e.clientY/s-el.offsetTop;el.classList.add('drag');el.style.transform='rotate(0deg)';e.preventDefault()});
  el.addEventListener('pointermove',e=>{if(e.pointerId!==id)return;const s=sc();el.style.left=(e.clientX/s-ox)+'px';el.style.top=(e.clientY/s-oy)+'px'});
  const up=e=>{if(e.pointerId!==id)return;id=null;el.classList.remove('drag');
   const tx=BX+p.c*CW,ty=BY+p.r*CH,x=el.offsetLeft,y=el.offsetTop;
-  if(Math.hypot(x-tx,y-ty)<SNAP){p.placed=true;snap();el.classList.add('ok');el.style.left=(tx-wrap.offsetLeft*0)+'px';el.style.top=ty+'px';placed++;$('sc').textContent=placed+' / 12';if(placed===12)end(true)}
+  if(Math.hypot(x-tx,y-ty)<SNAP){p.placed=true;snap();el.classList.add('ok');el.style.left=(tx-wrap.offsetLeft*0)+'px';el.style.top=ty+'px';placed++;totalPlaced++;$('sc').textContent=placed+' / 12';if(placed===12)won()}
   else{const nx=Math.max(0,Math.min(1328-CW,x)),ny=Math.max(80,Math.min(747-CH,y));el.style.left=nx+'px';el.style.top=ny+'px';el.style.transform=`rotate(${p.rot}deg)`}};
  el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)}
-function end(ok){if(state==='end')return;state='end';clearInterval(timer);
- const stars=ok?(left>TIME*.5?3:left>TIME*.2?2:1):0;
- if(ok){$('full').style.opacity=1;$('cnt').textContent='';}
- const ov=$('ov');ov.innerHTML=`<h1>${ok?'조각을 모두 맞췄다!':'시간이 다 됐어…'}</h1><div class="st">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p>${ok?'':'맞춘 조각 '+placed+' / 12'}</p>${EMBED?'':'<button id="rb">다시 하기</button>'}`;
- setTimeout(()=>{ov.hidden=false;if(!EMBED)$('rb').onclick=start},ok?1500:300);
+function won(){if(state!=='play')return;state='won';solved++;$('full').style.opacity=1;$('cnt').textContent='완성! 다음 그림이 나와요… (시간이 끝날 때까지 계속)';
+ setTimeout(()=>{if(state==='won'){if(left>6)round();else end()}},1800)}
+function end(){if(state==='end')return;state='end';clearInterval(timer);timer=null;
+ const stars=solved>=2?3:solved===1?2:totalPlaced>=6?1:0;
+ $('cnt').textContent='';
+ const ov=$('ov');ov.innerHTML=EMBED?`<h1>${stars>0?'다음 스테이지':'시간 종료'}</h1>`:`<h1>${solved>0?'시간 종료':'시간이 다 됐어…'}</h1><p>완성한 그림 ${solved}장</p><button id="rb">다시 하기</button>`;
+ setTimeout(()=>{ov.hidden=false;if(!EMBED)$('rb').onclick=start},300);
  post(stars)}
-window.__pz={get pieces(){return pieces},get state(){return state},start,end,get img(){return img}};
+window.__pz={get pieces(){return pieces},get state(){return state},start,end,get img(){return img},get solved(){return solved}};
 {const ov=$('ov');ov.hidden=false;ov.innerHTML='<h1>그림 퍼즐</h1><p>흩어진 12조각을 맞춰 그림을 완성하세요<br>제한시간 2분</p><button id="sb">시작</button>';$('sb').onclick=start}
 })();
 </script></body></html>
