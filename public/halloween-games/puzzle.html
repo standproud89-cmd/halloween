@@ -3,8 +3,8 @@
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:'Noto Sans KR','Malgun Gothic',system-ui,sans-serif;color:#e8dccb;user-select:none;touch-action:none}
-#wrap{position:absolute;left:0;top:0;width:1328px;height:747px;transform-origin:0 0;background:#0a0405 url(bg-dungeon.jpg) center/cover}
-#wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,.35),rgba(0,0,0,.85));pointer-events:none}
+#wrap{position:absolute;left:0;top:0;width:1328px;height:747px;transform-origin:0 0;background:#000}
+
 #hud{position:absolute;left:24px;right:24px;top:14px;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border:1px solid rgba(190,30,36,.5);background:rgba(10,3,4,.7);border-radius:12px;z-index:5}
 #hud b{font-size:26px;color:#e0262e;text-shadow:0 0 10px rgba(224,38,46,.6);font-variant-numeric:tabular-nums}
 #hud span{font-size:18px;color:#cfc3b0}
@@ -38,6 +38,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:'Noto
 (()=>{
 const EMBED=/[?&]embed=1/.test(location.search);
 const IMGS=['doll','book','skull','lady'],COLS=4,ROWS=3,CW=160,CH=160,BX=344,BY=96,TIME=120,SNAP=44,PEEK=3500;
+const _sn=new Audio('../sfx/snap.mp3');_sn.preload='auto';function snap(){try{const a=_sn.cloneNode();a.volume=1;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
 const $=id=>document.getElementById(id),wrap=$('wrap'),board=$('board');
 let pieces=[],placed=0,left=TIME,timer=null,state='idle',img='',sent=false;
 function fit(){const s=Math.min(innerWidth/1328,innerHeight/747);wrap.style.transform=`scale(${EMBED?innerWidth/1328:s})`;if(!EMBED){wrap.style.left=(innerWidth-1328*s)/2+'px';wrap.style.top=(innerHeight-747*s)/2+'px'}
@@ -70,7 +71,7 @@ function bind(p){const el=p.el;let id=null,ox=0,oy=0;
  el.addEventListener('pointermove',e=>{if(e.pointerId!==id)return;const s=sc();el.style.left=(e.clientX/s-ox)+'px';el.style.top=(e.clientY/s-oy)+'px'});
  const up=e=>{if(e.pointerId!==id)return;id=null;el.classList.remove('drag');
   const tx=BX+p.c*CW,ty=BY+p.r*CH,x=el.offsetLeft,y=el.offsetTop;
-  if(Math.hypot(x-tx,y-ty)<SNAP){p.placed=true;el.classList.add('ok');el.style.left=(tx-wrap.offsetLeft*0)+'px';el.style.top=ty+'px';placed++;$('sc').textContent=placed+' / 12';if(placed===12)end(true)}
+  if(Math.hypot(x-tx,y-ty)<SNAP){p.placed=true;snap();el.classList.add('ok');el.style.left=(tx-wrap.offsetLeft*0)+'px';el.style.top=ty+'px';placed++;$('sc').textContent=placed+' / 12';if(placed===12)end(true)}
   else{const nx=Math.max(0,Math.min(1328-CW,x)),ny=Math.max(80,Math.min(747-CH,y));el.style.left=nx+'px';el.style.top=ny+'px';el.style.transform=`rotate(${p.rot}deg)`}};
  el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)}
 function end(ok){if(state==='end')return;state='end';clearInterval(timer);

@@ -68,7 +68,7 @@ canvas{display:block;width:100%;height:auto;cursor:none;touch-action:none}
 </div>
 <script>
 (()=>{
-const W=1328,H=747,R=78,TL=7.5,TOTAL=120,STAGES=3,LAG=2.6,INPUT_MIN=20;
+const W=1328,H=747,R=54,TL=7.5,TOTAL=120,STAGES=3,LAG=2.6,INPUT_MIN=20;
 const EMB=/[?&]embed=1/.test(location.search);if(EMB)document.documentElement.classList.add('emb');
 const P=[{n:'백골',c:'#D9D2BE'},{n:'유령',c:'#4FB8AE'},{n:'촛불',c:'#E0A53A'},{n:'저주',c:'#9B6FD6'}];
 const $=id=>document.getElementById(id),cv=$('cv'),ctx=cv.getContext('2d');
@@ -77,13 +77,15 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 let audio=null;
 function ac(){try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();}catch(e){}return audio}
 function tone(f,d=.15,type='triangle',v=.18,when=0,f2){const c=ac();if(!c)return;const t=c.currentTime+when,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(c.destination);o.start(t);o.stop(t+d+.05);}
-const sSeen=()=>{tone(440,.18,'sine',.12);tone(660,.22,'sine',.1,.09);};
-const sKey=()=>tone(520,.05,'square',.06);
-const sOk=()=>[523,659,784,1047].forEach((f,i)=>tone(f,.22,'triangle',.18,i*.08));
-const sNo=()=>tone(150,.3,'sawtooth',.16,0,70);
-const sSwap=()=>tone(180,.35,'sawtooth',.12,0,60);
-const sTick=f=>tone(f,.07,'square',.08);
-const sEnd=ok=>ok?[523,659,784,1047].forEach((f,i)=>tone(f,.25,'triangle',.2,i*.1)):[330,262,196].forEach((f,i)=>tone(f,.3,'sawtooth',.14,i*.14));
+const _sfx={};['flip','match','tick','key','seen','ok','warn','snap'].forEach(n=>{const a=new Audio('../sfx/'+n+'.mp3');a.preload='auto';_sfx[n]=a;});
+function play(n,v=1){try{const a=_sfx[n].cloneNode();a.volume=v;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+const sSeen=()=>play('seen',1);
+const sKey=()=>play('key',1);
+const sOk=()=>play('ok',1);
+const _wr=new Audio('../halloween-wrong.mp3');_wr.preload='auto';const sNo=()=>{try{const a=_wr.cloneNode();a.volume=.8;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}};
+const sSwap=()=>{};
+const sTick=f=>play('tick',1);
+const sEnd=ok=>{};
 
 const BG=[1,2,3,4].map(i=>{const im=new Image();im.src='flashlight/bg'+i+'.jpg';return im;});
 const SC=['flashlight/s1.mp4','flashlight/s2.mp4','flashlight/s3.mp4'];let soundOn=true;
@@ -101,7 +103,7 @@ function start(){
   const nums=order.map((b,i)=>{
     // 숫자 위치: 화면 가장자리 피하고, 시작 손전등 위치(중앙)에서는 멀리
     let x,y;do{x=rnd(110,W-110);y=rnd(120,H-110);}while(Math.hypot(x-W/2,y-H/2)<260);
-    return {d:digs[i],x,y,rot:rnd(-.16,.16),sz:rnd(54,64),seen:false,vis:0,img:BG[b]};});
+    return {d:digs[i],x,y,rot:rnd(-.16,.16),sz:rnd(34,42),seen:false,vis:0,img:BG[b]};});
   const cl=[0,1,2].sort(()=>Math.random()-.5);
   G={t0:performance.now(),nums,stage:0,code:digs.join(''),entry:[],wrong:0,phase:'search',over:false,lastSec:99,scaring:false,warnUntil:0,pauseAt:0,
      swapAt:-1,lastK:-1,advAt:0,fadeAt:0,
@@ -138,7 +140,7 @@ function loop(now){
     if(!n.seen&&inb&&n.vis>.75){n.seen=true;sSeen();$('msg').textContent=`찾은 숫자 ${G.stage+1} / ${STAGES}`;G.fadeAt=now+1800;}
   }
   draw(now,ti);
-  if(!G.warnUntil){const sc=G.plan.find(p=>!p.done&&ti.el>=p.at&&left>6);if(sc){sc.done=true;G.warnUntil=now+700;G.warnClip=sc.clip;tone(70,.7,'sawtooth',.16,0,40);}}
+  if(!G.warnUntil){const sc=G.plan.find(p=>!p.done&&ti.el>=p.at&&left>6);if(sc){sc.done=true;G.warnUntil=now+700;G.warnClip=sc.clip;play('warn',1);}}
   if(left<=0)return finish(false);
   raf=requestAnimationFrame(loop);
 }

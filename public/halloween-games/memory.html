@@ -148,12 +148,14 @@ function clearAll(){timers.forEach(clearTimeout);timers=[];cancelAnimationFrame(
 let audio=null;
 function ac(){if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();return audio;}
 function tone(f,d=.15,type='triangle',v=.2,when=0,f2){const c=ac(),t=c.currentTime+when,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(c.destination);o.start(t);o.stop(t+d+.02);}
-const sFlip=()=>tone(520,.06,'sine',.07,0,760);
-const sMatch=()=>{tone(784,.14,'triangle',.2);tone(1175,.2,'triangle',.16,.07);};
-const sNo=()=>tone(180,.2,'sawtooth',.1,0,110);
-const sBoard=()=>[523,659,784,1047,1319].forEach((f,i)=>tone(f,.25,'triangle',.18,i*.07));
-const sEnd=()=>[784,659,523,392].forEach((f,i)=>tone(f,.3,'triangle',.18,i*.11));
-const sTick=(f)=>tone(f,.12,'square',.1);
+const _sfx={};['flip','match','tick','key','seen','ok','warn','snap'].forEach(n=>{const a=new Audio('../sfx/'+n+'.mp3');a.preload='auto';_sfx[n]=a;});
+function play(n,v=1){try{const a=_sfx[n].cloneNode();a.volume=v;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+const sFlip=()=>play('flip',1);
+const sMatch=()=>play('match',1);
+const sBoard=()=>play('ok',.9);
+const _wr=new Audio('../halloween-wrong.mp3');_wr.preload='auto';const sNo=()=>{try{const a=_wr.cloneNode();a.volume=.8;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}};
+const sEnd=()=>{};
+const sTick=(f)=>play('tick',1);
 
 // ---------- 화면 ----------
 const lanesEl=$('lanes');

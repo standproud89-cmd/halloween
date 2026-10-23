@@ -31,6 +31,8 @@ const HW_BRIEF = [
   { from: 19.6, to: 25.0, lines: ["그럼 모두 힘을 합쳐", "주어진 미션을 모두 성공하고,", "봉인된 상자를 열어라."], last: true },
   { from: 25.5, to: 29.7, lines: ["자, 이제 시작이다."], last: true, big: true },
 ];
+const HW_HAND_SEAL = `${import.meta.env.BASE_URL}halloween-hand-seal.mp3`; // 손도장 테두리가 다 찼을 때 효과음
+const HW_STAGE_CLEAR = `${import.meta.env.BASE_URL}halloween-stage-clear.mp3`; // 스테이지가 넘어갈 때마다 나는 천둥 효과음
 const HW_GATE_PAUSE = 5.0; // 문이 활짝 열린 뒤 멈추는 시점(초)
 const HW_INTRO_VIDEO = `${import.meta.env.BASE_URL}halloween-intro.mp4`;
 const HW_FAIL_VIDEO = `${import.meta.env.BASE_URL}halloween-fail.mp4`;
@@ -179,7 +181,10 @@ function StageHands({ level, onClear }) {
       const prev = holdRef.current[i];
       // 누르고 있으면 차오르고, 중간에 떼면 빠르게 비워짐
       let next = isDown ? prev + 50 : Math.max(0, prev - 150);
-      if (next >= need) { next = need; doneRef.current[i] = true; changed = true; }
+      if (next >= need) {
+        next = need; doneRef.current[i] = true; changed = true;
+        try { const a = new Audio(HW_HAND_SEAL); a.volume = 1; const pr = a.play(); if (pr && pr.catch) pr.catch(() => {}); } catch { /* ignore */ }
+      }
       holdRef.current[i] = next;
     }
     setHold([...holdRef.current]);
@@ -312,7 +317,7 @@ function HalloweenEvent({ onPhase }) {
   const openedRef = useRef(Array(HW_LOCKS).fill(false));
   const [failWhy, setFailWhy] = useState("time");
   const [failEnded, setFailEnded] = useState(false);
-  useEffect(() => { if (phase !== "fail") setFailEnded(false); }, [phase]);
+  useEffect(() => { setFailEnded(phase === "fail"); }, [phase]); // 유리 깨지는 영상 없이 바로 실패 문구 화면
   const [elapsed, setElapsed] = useState(0);
   const [toast, setToast] = useState(null);
   const [runKey, setRunKey] = useState(0);
@@ -436,6 +441,7 @@ function HalloweenEvent({ onPhase }) {
       fetch(HW_LAUGH).then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b)).then((b) => { buf = b; go(); }).catch(() => {});
     } catch (e) { /* 소리 없이 진행 */ }
     laughRef.current = { start: () => { want = true; if (ctx && ctx.state === "suspended") ctx.resume(); go(); } };
+    laughRef.current.start(); // 실패 화면이 나오면 바로 웃음소리 시작
     return () => { stopped = true; laughRef.current = null; try { if (src) src.stop(); } catch (e) {} try { if (ctx) ctx.close(); } catch (e) {} };
   }, [phase]);
   useEffect(() => {
@@ -485,10 +491,10 @@ function HalloweenEvent({ onPhase }) {
     }
     setClearOk(ok);
     setCleared(true);
-    if (ok) playCorrectSound();
+    try { const a = new Audio(HW_STAGE_CLEAR); a.volume = 0.9; const pr = a.play(); if (pr && pr.catch) pr.catch(() => {}); } catch { /* ignore */ }
     clearTimerRef.current = setTimeout(() => {
       if (stageRef.current >= HW_STAGES.length - 1) {
-        if (openedRef.current.every(Boolean)) setPhase("success");
+        if (openedRef.current[HW_LOCKS - 1]) setPhase("success"); // 카드·퍼즐을 실패해도 손전등 암호(마지막)를 맞히면 통과
         else { setFailWhy("locks"); setPhase("fail"); }
       } else {
         stageRef.current += 1;
@@ -807,29 +813,19 @@ function HalloweenEvent({ onPhase }) {
             className="relative overflow-hidden mx-auto"
             style={{ width: 1152, height: 648, backgroundColor: "#000" }}
           >
-            <video
-              key="failvideo"
-              src={HW_FAIL_VIDEO}
-              autoPlay
-              playsInline
-              preload="auto"
-              onTimeUpdate={(e) => { if (e.currentTarget.currentTime >= HW_LAUGH_AT && laughRef.current) laughRef.current.start(); }}
-              onEnded={() => { setFailEnded(true); if (laughRef.current) laughRef.current.start(); }}
-              onError={() => { setFailEnded(true); if (laughRef.current) laughRef.current.start(); }}
-              className="absolute inset-0 w-full h-full"
-              style={{ objectFit: "contain" }}
-            />
             <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-5 pb-24 transition-opacity duration-1000"
               style={{ opacity: failEnded ? 1 : 0, pointerEvents: failEnded ? "auto" : "none" }}>
               <p className="text-center" style={{ fontFamily: "'East Sea Dokdo', 'Nanum Brush Script', 'Pretendard', serif", fontSize: 58, lineHeight: 1.25, color: "#d4262c", textShadow: "0 0 22px #7a0000" }}>
                 저주는 풀리지 않았다.<br />너희들은 이 곳에서 나갈 수 없다.
               </p>
-              <button onClick={goHome}
-                className="px-10 py-4 rounded-full font-black text-2xl"
-                style={{ backgroundColor: "#8a1a1f", color: "#fff" }}>
-                처음으로 돌아가기
-              </button>
             </div>
+            {/* 운영자 전용: 화면 맨 위의 아주 어두운 버튼 (거의 안 보임) — 누르면 처음 화면으로 */}
+            <button onClick={goHome} aria-label="처음으로"
+              style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 180, height: 46, zIndex: 5,
+                background: "#000", border: "1px solid #141414", borderTop: 0, borderRadius: "0 0 10px 10px",
+                color: "#000", fontSize: 14, fontWeight: 700, cursor: "default" }}>
+              처음으로
+            </button>
           </div></HwFullBleed>, document.body)}
       </div>
 
