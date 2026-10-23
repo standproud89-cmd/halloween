@@ -53,7 +53,7 @@ function start(){
  $('ov').hidden=true;$('t').textContent=TIME;$('bi').style.transform='scaleX(1)';
  round();
 }
-function round(){
+function round(){drag=false;
  pieces.forEach(p=>p.el.remove());pieces=[];placed=0;
  const pool=IMGS.filter(x=>!done.includes(x));const n=pool[Math.random()*pool.length|0];img=lastImg=n;
  const url=`url(puzzle/${img}.jpg)`;
@@ -72,10 +72,11 @@ function round(){
 }
 function tick(){if(state==='end')return;left=Math.max(0,TIME-(performance.now()-t0)/1000);$('t').textContent=Math.ceil(left);$('bi').style.transform=`scaleX(${left/TIME})`;if(left<=0)end()}
 function sc(){return EMBED?innerWidth/1328:Math.min(innerWidth/1328,innerHeight/747)}
+let drag=false;
 function bind(p){const el=p.el;let id=null,ox=0,oy=0;
- el.addEventListener('pointerdown',e=>{if(state!=='play'||p.placed||id!==null)return;id=e.pointerId;el.setPointerCapture(id);const s=sc();ox=e.clientX/s-el.offsetLeft;oy=e.clientY/s-el.offsetTop;el.classList.add('drag');el.style.transform='rotate(0deg)';e.preventDefault()});
+ el.addEventListener('pointerdown',e=>{if(state!=='play'||p.placed||id!==null||drag)return;drag=true;id=e.pointerId;try{el.setPointerCapture(id)}catch(_){}const s=sc();ox=e.clientX/s-el.offsetLeft;oy=e.clientY/s-el.offsetTop;el.classList.add('drag');el.style.transform='rotate(0deg)';e.preventDefault()});
  el.addEventListener('pointermove',e=>{if(e.pointerId!==id)return;const s=sc();el.style.left=(e.clientX/s-ox)+'px';el.style.top=(e.clientY/s-oy)+'px'});
- const up=e=>{if(e.pointerId!==id)return;id=null;el.classList.remove('drag');
+ const up=e=>{if(e.pointerId!==id)return;id=null;drag=false;el.classList.remove('drag');
   const tx=BX+p.c*CW,ty=BY+p.r*CH,x=el.offsetLeft,y=el.offsetTop;
   if(Math.hypot(x-tx,y-ty)<SNAP){p.placed=true;snap();el.classList.add('ok');el.style.left=(tx-wrap.offsetLeft*0)+'px';el.style.top=ty+'px';placed++;totalPlaced++;$('sc').textContent=placed+' / 12';if(placed===12)won()}
   else{const nx=Math.max(0,Math.min(1328-CW,x)),ny=Math.max(80,Math.min(747-CH,y));el.style.left=nx+'px';el.style.top=ny+'px';el.style.transform=`rotate(${p.rot}deg)`}};
@@ -91,4 +92,9 @@ function end(){if(state==='end')return;state='end';clearInterval(timer);timer=nu
 window.__pz={get pieces(){return pieces},get state(){return state},start,end,get img(){return img},get solved(){return solved}};
 {const ov=$('ov');ov.hidden=false;ov.innerHTML='<h1>그림 퍼즐</h1><p>흩어진 12조각을 맞춰 그림을 완성하세요<br>제한시간 1분 30초</p><button id="sb">시작</button>';$('sb').onclick=start}
 })();
-</script></body></html>
+</script><style id="kiosk-css">html,body{touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}img,svg,canvas{-webkit-user-drag:none;user-drag:none}</style>
+<script id="kiosk-js">(function(){var s=function(e){e.preventDefault()};
+['contextmenu','dblclick','selectstart','dragstart','gesturestart','gesturechange','gestureend'].forEach(function(n){document.addEventListener(n,s,{capture:true,passive:false})});
+document.addEventListener('wheel',function(e){if(e.ctrlKey)e.preventDefault()},{capture:true,passive:false});
+document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault()},{capture:true,passive:false});})();</script>
+</body></html>
