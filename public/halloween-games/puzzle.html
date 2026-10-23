@@ -7,7 +7,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:'Noto
 
 #hud{position:absolute;left:24px;right:24px;top:14px;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border:1px solid rgba(190,30,36,.5);background:rgba(10,3,4,.7);border-radius:12px;z-index:5}
 #hud b{font-size:26px;color:#e0262e;text-shadow:0 0 10px rgba(224,38,46,.6);font-variant-numeric:tabular-nums}
-#hud span{font-size:18px;color:#cfc3b0}
+#hud span{font-size:18px;color:#d4262c}
 #bar{position:absolute;left:24px;right:24px;top:72px;height:5px;background:#2a0b0d;z-index:5;border-radius:3px;overflow:hidden}
 #bar i{display:block;height:100%;width:100%;background:#c4262e;transform-origin:0 0}
 #board{position:absolute;left:344px;top:96px;width:640px;height:480px;border:2px solid rgba(196,38,46,.7);box-shadow:0 0 30px rgba(196,38,46,.35),inset 0 0 40px #000;background:#050203;z-index:2}
@@ -18,17 +18,17 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:'Noto
 .pc.drag{cursor:grabbing;z-index:50;box-shadow:0 16px 30px rgba(0,0,0,.9),0 0 0 2px rgba(224,38,46,.8);transform:scale(1.06)}
 .pc.ok{cursor:default;z-index:3;box-shadow:none;border-color:transparent;animation:snap .5s}
 @keyframes snap{0%{filter:brightness(2.2)}100%{filter:none}}
-#cnt{position:absolute;left:0;right:0;top:588px;text-align:center;font-size:18px;color:#a89a86;z-index:5}
+#cnt{position:absolute;left:0;right:0;top:588px;text-align:center;font-size:18px;color:#d4262c;z-index:5}
 #ov{position:absolute;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.82);gap:14px;text-align:center}
 #ov h1{margin:0;font-size:56px;color:#e0262e;text-shadow:0 0 18px rgba(224,38,46,.7);letter-spacing:2px}
-#ov p{margin:0;font-size:24px;color:#d8ccb8;line-height:1.5}
+#ov p{margin:0;font-size:24px;color:#d4262c;line-height:1.5}
 #ov .st{font-size:64px;letter-spacing:10px;color:#e0a53a}
-#ov button{margin-top:10px;font:inherit;font-size:28px;padding:14px 46px;border-radius:12px;border:2px solid #c4262e;background:#3a0b0e;color:#f2e6d2;cursor:pointer}
+#ov button{margin-top:10px;font:inherit;font-size:28px;padding:14px 46px;border-radius:12px;border:2px solid #c4262e;background:#3a0b0e;color:#d4262c;cursor:pointer}
 #ov[hidden]{display:none}
 #ff{position:absolute;inset:0;pointer-events:none;z-index:60;box-shadow:inset 0 0 160px rgba(0,0,0,.95)}
 </style></head><body>
 <div id="wrap">
- <div id="hud"><span>그림 퍼즐 · 다같이 맞춰요</span><b id="t">120</b><span id="sc">0 / 12</span></div>
+ <div id="hud"><span>그림 퍼즐</span><b id="t">120</b><span id="sc">0 / 12</span></div>
  <div id="bar"><i id="bi"></i></div>
  <div id="board"><div id="ghost"></div><div id="grid"></div><div id="full"></div></div>
  <div id="cnt"></div><div id="ff"></div>
@@ -60,7 +60,7 @@ function start(){
   Object.assign(el.style,{left:sx+'px',top:sy+'px',display:'none',transform:`rotate(${rot}deg)`});
   wrap.appendChild(el);const p={el,c,r,rot,placed:false};pieces.push(p);bind(p)}
  setTimeout(()=>{if(state!=='peek')return;$('full').style.opacity=0;$('ghost').style.opacity=0;pieces.forEach(p=>p.el.style.display='block');
-  $('cnt').textContent='조각을 끌어서 제자리에 놓으세요 (여럿이 동시에 가능)';state='play';
+  $('cnt').textContent='조각을 끌어서 제자리에 놓으세요';state='play';
   timer=setInterval(tick,250);t0=performance.now()},PEEK);
 }
 let t0=0;
@@ -81,6 +81,6 @@ function end(ok){if(state==='end')return;state='end';clearInterval(timer);
  setTimeout(()=>{ov.hidden=false;if(!EMBED)$('rb').onclick=start},ok?1500:300);
  post(stars)}
 window.__pz={get pieces(){return pieces},get state(){return state},start,end,get img(){return img}};
-{const ov=$('ov');ov.hidden=false;ov.innerHTML='<h1>그림 퍼즐</h1><p>흩어진 12조각을 다같이 맞춰 그림을 완성하세요<br>제한시간 2분</p><button id="sb">시작</button>';$('sb').onclick=start}
+{const ov=$('ov');ov.hidden=false;ov.innerHTML='<h1>그림 퍼즐</h1><p>흩어진 12조각을 맞춰 그림을 완성하세요<br>제한시간 2분</p><button id="sb">시작</button>';$('sb').onclick=start}
 })();
 </script></body></html>

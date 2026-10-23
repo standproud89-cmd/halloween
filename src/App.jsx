@@ -702,7 +702,7 @@ function HalloweenEvent({ onPhase }) {
               onError={finishCinema}
               onLoadedMetadata={onVideoMeta}
               className="absolute inset-0 w-full h-full"
-              style={{ objectFit: "contain", filter: phase === "intro" ? "brightness(.7)" : "none" }}
+              style={{ objectFit: "contain", filter: "none" }}
             />
 
             {phase === "cinema" && (

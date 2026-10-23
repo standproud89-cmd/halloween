@@ -50,6 +50,7 @@ canvas{display:block;width:100%;height:auto;cursor:none;touch-action:none}
 .emb .hud{position:absolute;top:0;left:0;right:0;background:linear-gradient(#000d,#0000);border-bottom:0}
 .emb .tbar{position:absolute;top:0;left:0;right:0;z-index:8;height:6px}
 .emb .fin .big#again{display:none}
+body *{color:#d4262c!important}.emb .who{display:none!important}
 </style>
 </head><body>
 <div class="app">
@@ -103,11 +104,11 @@ function start(){
   const nums=order.map((b,i)=>{
     // 숫자 위치: 화면 가장자리 피하고, 시작 손전등 위치(중앙)에서는 멀리
     let x,y;do{x=rnd(110,W-110);y=rnd(120,H-110);}while(Math.hypot(x-W/2,y-H/2)<260);
-    return {d:digs[i],x,y,rot:rnd(-.16,.16),sz:rnd(34,42),seen:false,vis:0,img:BG[b]};});
+    return {d:digs[i],x,y,rot:rnd(-.16,.16),sz:rnd(22,28),seen:false,vis:0,img:BG[b]};});
   const cl=[0,1,2].sort(()=>Math.random()-.5);
   G={t0:performance.now(),nums,stage:0,code:digs.join(''),entry:[],wrong:0,phase:'search',over:false,lastSec:99,scaring:false,warnUntil:0,pauseAt:0,
      swapAt:-1,lastK:-1,advAt:0,fadeAt:0,
-     plan:[{at:rnd(22,50),clip:cl[0],done:false},{at:rnd(70,100),clip:cl[1],done:false}]};
+     plan:[]};
   L={x:W/2,y:H/2};T={x:W/2,y:H/2};lastT=performance.now();
   $('fin').hidden=true;$('keys').style.display='none';$('msg').textContent=`찾은 숫자 0 / ${STAGES}`;
   raf=requestAnimationFrame(loop);
@@ -147,8 +148,8 @@ function loop(now){
 function numText(c,n){
   c.save();c.translate(n.x,n.y);c.rotate(n.rot);c.textAlign='center';c.textBaseline='middle';
   c.font=`900 ${n.sz}px "Noto Serif KR",serif`;
-  c.lineWidth=5;c.strokeStyle='rgba(15,0,0,.8)';c.strokeText(n.d,0,0);
-  c.fillStyle='#b8242b';c.fillText(n.d,0,0);
+  c.lineWidth=3;c.strokeStyle='rgba(0,0,0,.7)';c.strokeText(n.d,0,0);
+  c.fillStyle='#ffffff';c.fillText(n.d,0,0);
   c.restore();
 }
 function draw(now,ti){
@@ -208,7 +209,7 @@ function showStart(){
   const im=BG[Math.floor(Math.random()*4)];if(im.complete)ctx.drawImage(im,0,0,W,H);ctx.fillStyle='rgba(0,0,0,.8)';ctx.fillRect(0,0,W,H);
   $('rd').textContent='준비';$('who').textContent='-';$('who').style.background='#555';$('msg').textContent=`찾은 숫자 0 / ${STAGES}`;$('tb').style.transform='scaleX(1)';
   $('keys').style.display='none';
-  $('fin').hidden=false;$('fin').innerHTML=`<div class="panel"><h2>어둠 속의 암호</h2><p>3개의 장소에 <b>숫자가 하나씩</b> 숨어 있어요.<br>4명이 <b>한 화면을 함께 보며</b> 숫자를 찾아 <b>기억</b>하세요.<br>3곳을 다 찾으면 숫자를 <b>순서대로 입력</b>해요. 제한 시간은 <b>2분</b>!</p><button class="big" id="go">▶ 시작</button></div>`;
+  $('fin').hidden=false;$('fin').innerHTML=`<div class="panel"><h2>어둠 속의 암호</h2><p>3개의 장소에 <b>숫자가 하나씩</b> 숨어 있어요.<br>화면을 보며 숫자를 찾아 <b>기억</b>하세요.<br>3곳을 다 찾으면 숫자를 <b>순서대로 입력</b>해요. 제한 시간은 <b>2분</b>!</p><button class="big" id="go">▶ 시작</button></div>`;
   $('go').onclick=start;
 }
 const sv=$('sv'),scEl=$('scare');
