@@ -28,7 +28,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:'Noto
 #ff{position:absolute;inset:0;pointer-events:none;z-index:60;box-shadow:inset 0 0 160px rgba(0,0,0,.95)}
 </style></head><body>
 <div id="wrap">
- <div id="hud"><span>그림 퍼즐</span><b id="t">120</b><span id="sc">0 / 12</span></div>
+ <div id="hud"><span>그림 퍼즐</span><b id="t">90</b><span id="sc">0 / 12</span></div>
  <div id="bar"><i id="bi"></i></div>
  <div id="board"><div id="ghost"></div><div id="grid"></div><div id="full"></div></div>
  <div id="cnt"></div><div id="ff"></div>
@@ -37,7 +37,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:'Noto
 <script>
 (()=>{
 const EMBED=/[?&]embed=1/.test(location.search);
-const IMGS=['doll','book','skull','lady','skull2','door','frame'],COLS=4,ROWS=3,CW=160,CH=160,BX=344,BY=96,TIME=120,SNAP=44,PEEK=3500;
+const IMGS=['doll','book','skull','lady','skull2','door','frame'],COLS=4,ROWS=3,CW=160,CH=160,BX=344,BY=96,TIME=90,SNAP=44,PEEK=3500;
 const _sn=new Audio('../sfx/snap.mp3');_sn.preload='auto';function snap(){try{const a=_sn.cloneNode();a.volume=1;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
 const $=id=>document.getElementById(id),wrap=$('wrap'),board=$('board');
 let pieces=[],placed=0,left=TIME,timer=null,state='idle',img='',sent=false;
@@ -89,6 +89,6 @@ function end(){if(state==='end')return;state='end';clearInterval(timer);timer=nu
  setTimeout(()=>{ov.hidden=false;if(!EMBED)$('rb').onclick=start},300);
  post(stars)}
 window.__pz={get pieces(){return pieces},get state(){return state},start,end,get img(){return img},get solved(){return solved}};
-{const ov=$('ov');ov.hidden=false;ov.innerHTML='<h1>그림 퍼즐</h1><p>흩어진 12조각을 맞춰 그림을 완성하세요<br>제한시간 2분</p><button id="sb">시작</button>';$('sb').onclick=start}
+{const ov=$('ov');ov.hidden=false;ov.innerHTML='<h1>그림 퍼즐</h1><p>흩어진 12조각을 맞춰 그림을 완성하세요<br>제한시간 1분 30초</p><button id="sb">시작</button>';$('sb').onclick=start}
 })();
 </script></body></html>

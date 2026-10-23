@@ -40,7 +40,7 @@ const HW_BGM = `${import.meta.env.BASE_URL}halloween-bgm.mp3`;
 const HW_LAUGH = `${import.meta.env.BASE_URL}halloween-laugh.wav`; // 실패 화면: 모니터가 깨질 때부터 '처음으로' 누를 때까지 반복
 const HW_LAUGH_AT = 3.45; // 실패 영상에서 사신이 모니터를 깨는 시점(초)
 const HW_THUNDER = `${import.meta.env.BASE_URL}halloween-thunder.mp3`; // 성공 화면에서 놀라게 하는 천둥소리
-const HW_TIME_LIMIT = 300; // 전체 제한 시간(초) = 5분 (카드 1분 + 그림퍼즐 2분 + 손전등 2분, 손도장은 시간 없음)
+const HW_TIME_LIMIT = 300; // 전체 제한 시간(초) = 5분 (카드 1분 + 그림퍼즐 1분30초 + 손전등 2분30초, 손도장은 시간 없음)
 const HW_TIME_GRACE = 4; // 미션 전환 연출 여유(초)
 const HW_PLAYERS = [
   { name: "보라", color: "#B26BE8", dot: "🟣" },
@@ -55,8 +55,8 @@ const HW_ARENA_H = 470;
 const HW_STAGES = [
   { id: "hands", label: "손도장의 문" },
   { id: "memory", label: "카드 짝 맞추기" }, // 1분
-  { id: "puzzle", label: "그림 퍼즐 맞추기" }, // 2분
-  { id: "flashlight", label: "손전등 암호 찾기" }, // 2분
+  { id: "puzzle", label: "그림 퍼즐 맞추기" }, // 1분30초
+  { id: "flashlight", label: "손전등 암호 찾기" }, // 2분30초
 ];
 const HW_LOCKS = HW_STAGES.length - 1; // 자물쇠 = 손도장 이후 3개 미션
 
@@ -789,10 +789,12 @@ function HalloweenEvent({ onPhase }) {
               봉인이 풀렸다.
             </p>
             <p className="mt-3 mb-12" style={{ fontFamily: "'East Sea Dokdo', 'Nanum Brush Script', 'Pretendard', serif", fontSize: 58, color: "#d4262c", textShadow: "0 0 20px #7a0000" }}>너희는 이 저주에서 탈출했다.</p>
-            <button onClick={goHome}
-              className="px-8 py-3 rounded-full font-bold text-lg"
-              style={{ backgroundColor: "transparent", color: "#5a4d4d", border: "1px solid #2b0e0e" }}>
-              처음 화면
+            {/* 운영자 전용: 화면 맨 위의 아주 어두운 버튼 (거의 안 보임) — 누르면 처음 화면으로 */}
+            <button onClick={goHome} aria-label="처음으로"
+              style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: 180, height: 46, zIndex: 50,
+                background: "#000", border: "1px solid #141414", borderTop: 0, borderRadius: "0 0 10px 10px",
+                color: "#000", fontSize: 14, fontWeight: 700, cursor: "default" }}>
+              처음으로
             </button>
           </div>
         )}

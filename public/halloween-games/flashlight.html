@@ -69,7 +69,7 @@ body *{color:#d4262c!important}.emb .who{display:none!important}
 </div>
 <script>
 (()=>{
-const W=1328,H=747,R=44,TL=7.5,TOTAL=120,STAGES=4,LAG=2.6,INPUT_MIN=20;
+const W=1328,H=747,R=46,TL=7.5,TOTAL=150,STAGES=4,LAG=2.6,INPUT_MIN=20;
 const EMB=/[?&]embed=1/.test(location.search);if(EMB)document.documentElement.classList.add('emb');
 const P=[{n:'백골',c:'#D9D2BE'},{n:'유령',c:'#4FB8AE'},{n:'촛불',c:'#E0A53A'},{n:'저주',c:'#9B6FD6'}];
 const $=id=>document.getElementById(id),cv=$('cv'),ctx=cv.getContext('2d');
@@ -210,7 +210,7 @@ function showStart(){
   const im=BG[Math.floor(Math.random()*BG.length)];if(im.complete)ctx.drawImage(im,0,0,W,H);ctx.fillStyle='rgba(0,0,0,.8)';ctx.fillRect(0,0,W,H);
   $('rd').textContent='준비';$('who').textContent='-';$('who').style.background='#555';$('msg').textContent=`찾은 숫자 0 / ${STAGES}`;$('tb').style.transform='scaleX(1)';
   $('keys').style.display='none';
-  $('fin').hidden=false;$('fin').innerHTML=`<div class="panel"><h2>어둠 속의 암호</h2><p>4개의 장소에 <b>숫자가 하나씩</b> 숨어 있어요.<br>화면을 보며 숫자를 찾아 <b>기억</b>하세요.<br>4곳을 다 찾으면 숫자를 <b>순서대로 입력</b>해요. 제한 시간은 <b>2분</b>!</p><button class="big" id="go">▶ 시작</button></div>`;
+  $('fin').hidden=false;$('fin').innerHTML=`<div class="panel"><h2>어둠 속의 암호</h2><p>4개의 장소에 <b>숫자가 하나씩</b> 숨어 있어요.<br>화면을 보며 숫자를 찾아 <b>기억</b>하세요.<br>4곳을 다 찾으면 숫자를 <b>순서대로 입력</b>해요. 제한 시간은 <b>2분 30초</b>!</p><button class="big" id="go">▶ 시작</button></div>`;
   $('go').onclick=start;
 }
 const sv=$('sv'),scEl=$('scare');
