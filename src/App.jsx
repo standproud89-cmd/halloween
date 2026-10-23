@@ -38,7 +38,8 @@ const HW_BGM = `${import.meta.env.BASE_URL}halloween-bgm.mp3`;
 const HW_LAUGH = `${import.meta.env.BASE_URL}halloween-laugh.wav`; // 실패 화면: 모니터가 깨질 때부터 '처음으로' 누를 때까지 반복
 const HW_LAUGH_AT = 3.45; // 실패 영상에서 사신이 모니터를 깨는 시점(초)
 const HW_THUNDER = `${import.meta.env.BASE_URL}halloween-thunder.mp3`; // 성공 화면에서 놀라게 하는 천둥소리
-const HW_TIME_LIMIT = 300; // 전체 제한 시간(초) = 5분
+const HW_TIME_LIMIT = 300; // 전체 제한 시간(초) = 5분 (카드 1분 + 그림퍼즐 2분 + 손전등 2분, 손도장은 시간 없음)
+const HW_TIME_GRACE = 4; // 미션 전환 연출 여유(초)
 const HW_PLAYERS = [
   { name: "보라", color: "#B26BE8", dot: "🟣" },
   { name: "파랑", color: "#4C9BFF", dot: "🔵" },
@@ -47,18 +48,16 @@ const HW_PLAYERS = [
 ];
 const HW_LANE_W = 320;
 const HW_ARENA_W = HW_LANE_W * 4; // 1280 (손도장 스테이지)
-const HW_GAME_W = 1328; // 5개 미션 게임 화면 폭 (TV 16:9에 꽉 차도록)
+const HW_GAME_W = 1328; // 4개 미션 게임 화면 폭 (TV 16:9에 꽉 차도록)
 const HW_ARENA_H = 470;
 const HW_STAGES = [
   { id: "hands", label: "손도장의 문" },
-  { id: "piano", label: "피아노 타일" },
-  { id: "puzzle", label: "도형 퍼즐" },
-  { id: "memory", label: "카드 짝 맞추기" },
-  { id: "skull", label: "해골 두더지" },
-  { id: "candy", label: "사탕 받기" },
+  { id: "memory", label: "카드 짝 맞추기" }, // 1분
+  { id: "puzzle", label: "그림 퍼즐 맞추기" }, // 2분
+  { id: "flashlight", label: "손전등 암호 찾기" }, // 2분
 ];
 const HW_PASSWORD = "860"; // 성공 시 보여줄 자물쇠 비밀번호
-const HW_LOCKS = HW_STAGES.length - 1; // 자물쇠 = 손도장 이후 5개 미션
+const HW_LOCKS = HW_STAGES.length - 1; // 자물쇠 = 손도장 이후 3개 미션
 
 function fmtClock(sec) {
   const m = String(Math.floor(sec / 60)).padStart(2, "0");
@@ -84,9 +83,9 @@ function HwArena({ arenaRef, children, height = HW_ARENA_H, eerie = false }) {
       style={{
         width: HW_ARENA_W,
         height,
-        backgroundColor: eerie ? "#050303" : C.hcard,
-        backgroundImage: eerie ? "radial-gradient(ellipse at 50% 35%, rgba(90,10,10,.28) 0%, rgba(0,0,0,0) 65%)" : undefined,
-        border: `2px solid ${eerie ? "#2b0e0e" : C.hborder}`,
+        backgroundColor: eerie ? "transparent" : C.hcard,
+        backgroundImage: undefined,
+        border: eerie ? "none" : `2px solid ${C.hborder}`,
         touchAction: "none",
       }}
     >
@@ -97,8 +96,8 @@ function HwArena({ arenaRef, children, height = HW_ARENA_H, eerie = false }) {
           style={{
             left: i * HW_LANE_W,
             width: HW_LANE_W,
-            background: eerie ? "linear-gradient(180deg, transparent 55%, rgba(110,0,0,.16))" : `linear-gradient(180deg, ${p.color}22, ${p.color}08 60%, transparent)`,
-            borderLeft: i === 0 ? "none" : eerie ? "1px solid #2b0e0e" : `2px dashed ${C.hborder}`,
+            background: eerie ? "transparent" : `linear-gradient(180deg, ${p.color}22, ${p.color}08 60%, transparent)`,
+            borderLeft: i === 0 ? "none" : eerie ? "1px solid rgba(140,25,25,.35)" : `2px dashed ${C.hborder}`,
           }}
         >
           {eerie ? null : (
@@ -119,7 +118,7 @@ function HwArena({ arenaRef, children, height = HW_ARENA_H, eerie = false }) {
 function HwInstruction({ icon, title, text, eerie = false }) {
   if (eerie) return (
     <div className="text-center mb-4">
-      <p style={{ color: "#c4161c", fontFamily: "'East Sea Dokdo', 'Nanum Brush Script', serif", fontSize: 64, lineHeight: 1.05, letterSpacing: "0.06em", textShadow: "0 0 18px #7a0000" }}>{title}</p>
+      {title ? <p style={{ color: "#c4161c", fontFamily: "'East Sea Dokdo', 'Nanum Brush Script', serif", fontSize: 64, lineHeight: 1.05, letterSpacing: "0.06em", textShadow: "0 0 18px #7a0000" }}>{title}</p> : null}
       <p className="text-2xl" style={{ color: "#d4262c", textShadow: "0 0 10px #5a0000" }}>{text}</p>
     </div>
   );
@@ -131,35 +130,21 @@ function HwInstruction({ icon, title, text, eerie = false }) {
   );
 }
 
-/* 피 묻은 손도장 (직접 그린 SVG) — pressed 면 선명하게 번지고 피가 더 흘러내림 */
+/* 손도장 (PNG 마스크 위에 색을 입힘) — pressed 면 선명한 핏빛으로 번쩍 */
 function HwBloodHand({ pressed }) {
-  const fill = pressed ? "#c4161c" : "#5e0d11";
-  const drips = [
-    { x: 78, w: 7, h: 38, d: 0 }, { x: 96, w: 6, h: 62, d: 0.08 }, { x: 112, w: 8, h: 30, d: 0.03 },
-    { x: 128, w: 6, h: 50, d: 0.12 }, { x: 64, w: 5, h: 22, d: 0.05 },
-  ];
+  const url = `${import.meta.env.BASE_URL}halloween-games/handprint.png`;
   return (
-    <svg viewBox="0 0 220 270" width="206" height="250" style={{ overflow: "visible", filter: pressed ? "drop-shadow(0 0 10px #7a0000)" : "none", transition: "filter .15s" }}>
-      <g fill={fill} style={{ transition: "fill .15s" }}>
-        <rect x="40" y="38" width="22" height="66" rx="11" transform="rotate(-18 51 104)" />
-        <rect x="74" y="14" width="24" height="86" rx="12" transform="rotate(-5 86 100)" />
-        <rect x="108" y="12" width="24" height="88" rx="12" transform="rotate(5 120 100)" />
-        <rect x="140" y="34" width="22" height="70" rx="11" transform="rotate(18 151 104)" />
-        <path d="M46 126 C44 104 70 98 100 100 C130 98 158 104 160 128 C168 148 172 168 160 186 C150 202 128 206 104 206 C78 206 56 200 48 184 C40 166 42 146 46 126 Z" />
-        <rect x="150" y="118" width="22" height="64" rx="11" transform="rotate(62 161 150) translate(18 -6)" />
-        {drips.map((d, i) => (
-          <g key={i} style={{ transformOrigin: `${d.x + d.w / 2}px 200px`, transform: `scaleY(${pressed ? 1.45 : 1})`, transition: `transform ${0.5 + d.d * 3}s ease-out ${d.d}s` }}>
-            <rect x={d.x} y="198" width={d.w} height={d.h} rx={d.w / 2} />
-            <circle cx={d.x + d.w / 2} cy={198 + d.h} r={d.w / 2 + 1.4} />
-          </g>
-        ))}
-        <circle cx="52" cy="214" r="3" /><circle cx="150" cy="222" r="2.5" /><circle cx="36" cy="170" r="2.5" />
-      </g>
-      <g stroke="#000" strokeOpacity=".35" strokeWidth="2.2" fill="none" strokeLinecap="round">
-        <path d="M58 70 l8 3 M84 56 h16 M116 54 h16 M148 72 l-8 3" />
-        <path d="M70 140 C 90 132 120 132 142 140" />
-      </g>
-    </svg>
+    <div style={{ width: 207, height: 250, filter: pressed ? "drop-shadow(0 0 14px #a00000)" : "none", transition: "filter .15s" }}>
+      <div style={{
+        width: "100%", height: "100%",
+        backgroundColor: pressed ? "#d0181f" : "#6e1217",
+        WebkitMaskImage: `url(${url})`, maskImage: `url(${url})`,
+        WebkitMaskSize: "contain", maskSize: "contain",
+        WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat",
+        WebkitMaskPosition: "center", maskPosition: "center",
+        transition: "background-color .15s",
+      }} />
+    </div>
   );
 }
 
@@ -211,7 +196,7 @@ function StageHands({ level, onClear }) {
   return (
     <>
       <HwInstruction
-        eerie icon="" title="손도장의 문"
+        eerie icon="" title=""
         text="한 사람씩 자기 손도장 위에 손을 얹고, 테두리가 가득 찰 때까지 떼지 마세요."
       />
       <HwArena eerie>
@@ -457,17 +442,17 @@ function HalloweenEvent({ onPhase }) {
     const a = bgmAudioRef.current;
     if (!a) return;
     if (a.paused) { const pr = a.play(); if (pr && pr.catch) pr.catch(() => {}); }
-    a.volume = phase === "fail" ? 0.4 : phase === "playing" && stageIdx === 1 ? 0.35 : 0.55; // 피아노 타일(자체 음)만 조금 낮춤
+    a.volume = phase === "fail" ? 0.4 : phase === "playing" && false ? 0.35 : 0.55;
   }, [phase, stageIdx]);
 
   // ---- 제한 시간 ----
   useEffect(() => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" || stageIdx < 1) return; // 손도장 단계에서는 시간이 흐르지 않음
     const id = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(id);
-  }, [phase]);
+  }, [phase, stageIdx]);
   useEffect(() => {
-    if (phase === "playing" && elapsed >= HW_TIME_LIMIT) {
+    if (phase === "playing" && elapsed >= HW_TIME_LIMIT + HW_TIME_GRACE) {
       clearTimeout(clearTimerRef.current);
       setFailWhy("time");
       setPhase("fail");
@@ -646,6 +631,16 @@ function HalloweenEvent({ onPhase }) {
   }, [phase]);
 
 
+  // 손도장 스테이지: 던전 이미지를 화면 전체 배경으로 (끝나면 원래대로)
+  useEffect(() => {
+    if (!(phase === "playing" && stageIdx === 0)) return undefined;
+    const els = [document.documentElement, document.body, document.querySelector(".hw-root")?.closest(".h-screen")].filter(Boolean);
+    const prev = els.map((e) => [e.style.backgroundColor, e.style.backgroundImage, e.style.backgroundSize, e.style.backgroundPosition, e.style.backgroundAttachment, e.style.backgroundRepeat]);
+    const img = `linear-gradient(rgba(0,0,0,.42), rgba(0,0,0,.42)), radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 45%, rgba(0,0,0,.6) 100%), url(${import.meta.env.BASE_URL}halloween-games/bg-dungeon.jpg)`;
+    els.forEach((e) => { e.style.backgroundColor = "#000"; e.style.backgroundImage = img; e.style.backgroundSize = "cover"; e.style.backgroundPosition = "center"; e.style.backgroundAttachment = "fixed"; e.style.backgroundRepeat = "no-repeat"; });
+    return () => els.forEach((e, i) => { const q = prev[i]; e.style.backgroundColor = q[0]; e.style.backgroundImage = q[1]; e.style.backgroundSize = q[2]; e.style.backgroundPosition = q[3]; e.style.backgroundAttachment = q[4]; e.style.backgroundRepeat = q[5]; });
+  }, [phase, stageIdx]);
+
   // 미리보기 전용: 화면 바로가기 (window.__HW_PREVIEW 가 켜진 페이지에서만 동작)
   if (typeof window !== "undefined" && window.__HW_PREVIEW) {
     window.__hwJump = (t) => {
@@ -679,7 +674,7 @@ function HalloweenEvent({ onPhase }) {
 
   return (
     <div
-      style={{ backgroundColor: C.hbg, userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none", touchAction: "none", WebkitTapHighlightColor: "transparent", overscrollBehavior: "none" }}
+      style={{ backgroundColor: C.hbg, ...(phase === "playing" && stageIdx === 0 ? { backgroundColor: "transparent" } : {}), userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none", touchAction: "none", WebkitTapHighlightColor: "transparent", overscrollBehavior: "none" }}
       className="w-full block hw-root"
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -763,21 +758,9 @@ function HalloweenEvent({ onPhase }) {
               <span className="text-2xl font-black" style={{ color: "#c9c9cc" }}>
                 
               </span>
-              <div className="flex items-center gap-2" aria-label="진행 상황">
-                {HW_STAGES.slice(1).map((s, i) => {
-                  const cur = i === stageIdx - 1;
-                  const done = opened[i];
-                  const missed = !done && (i < stageIdx - 1 || (cur && cleared));
-                  return (
-                    <div key={i} className="w-14 h-14 rounded-full flex items-center justify-center text-3xl"
-                      style={{ border: `3px solid ${done ? "#8a1a1f" : cur ? C.hred : C.hborder}`, backgroundColor: done ? "#2a0a0c" : C.hcard, opacity: done ? 0.75 : missed ? 0.4 : 1 }}>
-                      {done ? "🔓" : "🔒"}
-                    </div>
-                  );
-                })}
-              </div>
+              <span />{/* 상단 자물쇠 표시는 제거 (열림 여부는 내부에서만 판정) */}
               <span className="text-4xl font-black tabular-nums"
-                style={{ justifySelf: "end", color: remaining <= 30 ? C.hred : "#c9c9cc", animation: remaining <= 30 ? "pulseGlow 1s ease-in-out infinite" : "none" }}>
+                style={{ visibility: stageIdx === 0 ? "hidden" : "visible", justifySelf: "end", color: "#e0262e", textShadow: "0 0 12px rgba(160,0,0,.55)", animation: remaining <= 30 ? "pulseGlow 1s ease-in-out infinite" : "none" }}>
                 ⏱ {fmtClock(remaining)}
               </span>
             </div>
@@ -785,7 +768,7 @@ function HalloweenEvent({ onPhase }) {
             {stageIdx === 0 && (
               <div className="mx-auto" style={{ width: HW_ARENA_W }}><StageHands key="s0" {...stageProps} /></div>
             )}
-            {/* 5개 게임을 미리 불러와 겹쳐 두고, 차례가 되면 부드럽게 전환 (로딩 버벅임 방지) */}
+            {/* 4개 게임을 미리 불러와 겹쳐 두고, 차례가 되면 부드럽게 전환 (로딩 버벅임 방지) */}
             <div style={{ display: "grid", ...(stageIdx === 0 ? { position: "absolute", left: 0, top: 0, height: 0, overflow: "hidden", visibility: "hidden", pointerEvents: "none" } : {}) }}>
               {HW_STAGES.slice(1).map((s, i) => (
                 <StageGame key={s.id} id={s.id} active={stageIdx === i + 1} fade={cleared} onFinish={finishGame} />

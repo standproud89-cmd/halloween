@@ -1,0 +1,232 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>손전등 암호 찾기</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@700;900&display=swap">
+<style>
+:root{--bg:#030203;--card:#0c0809;--line:#3a0d10;--fg:#d9d2be;--muted:#8a7f78;--red:#b3121b;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:'Noto Sans KR',system-ui,sans-serif}
+body{padding-inline:16px;padding-block:20px 40px}
+.app{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{margin:0;font-size:22px;font-weight:900;font-family:'Noto Serif KR',serif}
+.sub{margin:4px 0 0;color:var(--muted);font-size:14px;line-height:1.55}
+.stage{position:relative;border:2px solid #2a0a0d;border-radius:6px;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none;touch-action:none}
+.hud{position:relative;z-index:7;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:10px 18px;background:linear-gradient(#000e,#000a);border-bottom:1px solid #2a0a0d}
+.hud .rd{font-weight:900;font-size:20px;text-align:center;font-variant-numeric:tabular-nums;font-family:'Noto Serif KR',serif}
+.hud .msg{font-weight:900;font-size:17px;color:#d9b65c;font-family:'Noto Serif KR',serif}
+.hud .who{justify-self:end;font-weight:900;font-size:16px;padding:5px 14px;border-radius:4px;color:#0b0b0d;background:#555;min-width:110px;text-align:center;font-family:'Noto Serif KR',serif}
+.tbar{height:7px;background:#120a0a}
+.tbar i{display:block;height:100%;width:100%;background:#D9D2BE;transform-origin:left}
+canvas{display:block;width:100%;height:auto;cursor:none;touch-action:none}
+.keys{position:absolute;inset:0;z-index:6;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:12px;background:#030203;text-align:center}.keys h3{margin:0;font:900 clamp(20px,3.2vw,34px) 'Noto Serif KR',serif;color:#c4262e;text-shadow:0 0 18px rgba(196,38,46,.45)}.keys p{margin:0;color:#bdb4a2;font-size:15px}
+.slots{display:flex;gap:8px}
+.slot{width:70px;height:84px;border:2px solid #6b5a4a;border-radius:6px;background:#0a0606;display:flex;align-items:center;justify-content:center;font:900 44px 'Noto Serif KR',serif;color:#e8d9b8;transition:border-color .2s}
+.slot.on{border-color:#c4262e;box-shadow:0 0 14px #b3121b88}
+.pad{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:760px}
+.pad button{font:900 28px 'Noto Serif KR',serif;width:66px;height:66px;border-radius:6px;border:1px solid #4a3a3a;background:#14090a;color:#d9d2be;cursor:pointer;touch-action:manipulation}
+.pad button:active{background:#5c0a10;border-color:#c4262e}
+.pad .del{font-size:18px;color:#c4262e}
+.hint{position:absolute;right:14px;bottom:78px;z-index:6;font-size:13px;color:#c9bca3;text-shadow:0 0 6px #000;font-family:'Noto Serif KR',serif;pointer-events:none}
+.shake{animation:sh .35s}
+@keyframes sh{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.scare{position:absolute;inset:0;z-index:9;background:#000;display:none}.scare.on{display:block}.scare video{width:100%;height:100%;object-fit:cover;display:block}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.chip{font:inherit;font-size:13px;font-weight:700;color:var(--fg);background:#0c0809;border:1px solid #3a2a2a;border-radius:4px;padding:7px 14px;cursor:pointer}.chip:hover{border-color:var(--red)}.row small{color:var(--muted);font-size:12.5px}
+.fin{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,1,2,.86);padding:16px;z-index:8}
+.fin[hidden]{display:none}
+.panel{text-align:center;max-width:640px}
+.panel h2{margin:0 0 6px;font-size:clamp(22px,4.4vw,38px);font-weight:900;color:#c4262e;letter-spacing:.05em;text-shadow:0 0 22px rgba(196,38,46,.55),0 2px 0 #000;font-family:'Noto Serif KR',serif}
+.panel p{margin:0 0 14px;color:#bdb4a2;font-size:clamp(13px,2vw,16px);line-height:1.6}
+.stars{font-size:clamp(28px,6vw,48px);letter-spacing:.1em;margin-bottom:6px;filter:sepia(1) hue-rotate(-50deg) saturate(4)}
+.big{font:inherit;font-weight:900;font-size:clamp(16px,2.6vw,22px);color:#f1e3d3;background:linear-gradient(#8f1119,#4d070c);border:1px solid #c4262e;border-radius:6px;padding:12px 30px;cursor:pointer;box-shadow:0 0 30px rgba(179,18,27,.5),inset 0 0 12px #0008;font-family:'Noto Serif KR',serif}
+.bar{display:grid;grid-template-columns:54px 1fr 40px;gap:10px;align-items:center;font-size:14px;font-weight:700;margin:6px 0}
+.bar .t{height:14px;border-radius:4px;background:#1d1212;overflow:hidden}
+.bar .t i{display:block;height:100%}
+.note{font-size:12.5px;color:var(--muted);line-height:1.6;margin:0}
+.vg{position:absolute;inset:0;z-index:4;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(0,0,0,.55) 100%)}
+
+.emb body,.emb{padding:0}.emb body{padding:0;overflow:hidden}
+.emb .app{max-width:none;margin:0;gap:0}
+.emb .app>div:first-child,.emb .row,.emb .note{display:none!important}
+.emb .stage{border:0;border-radius:0}
+.emb .hud{position:absolute;top:0;left:0;right:0;background:linear-gradient(#000d,#0000);border-bottom:0}
+.emb .tbar{position:absolute;top:0;left:0;right:0;z-index:8;height:6px}
+.emb .fin .big#again{display:none}
+</style>
+</head><body>
+<div class="app">
+  <div><h1>손전등 암호 찾기</h1>
+  <p class="sub">불 꺼진 폐허에 3개의 장소마다 숨겨진 <b>숫자 1개</b>를 손전등으로 찾아 기억하세요. 4명이 한 화면을 함께 보며 손전등으로 3곳을 모두 찾으면 <b>찾은 숫자를 순서대로</b> 입력하는 화면이 나와요. 찾는 시간은 1분 30초, 중간에 2번 불이 깜빡이며 무언가 튀어나와요.</p></div>
+  <div class="stage" id="stage">
+    <div class="hud"><div class="msg" id="msg">발견 0 / 3</div><div class="rd" id="rd">준비</div><div class="who" id="who">-</div></div>
+    <div class="tbar"><i id="tb"></i></div>
+    <canvas id="cv" width="1328" height="747"></canvas>
+            <div class="keys" id="keys"><h3>찾은 숫자를 순서대로 입력하세요</h3><p>1번 장면부터 3번 장면까지, 찾은 순서 그대로!</p><div class="slots" id="slots"></div><div class="pad" id="pad"></div></div>
+    <div class="fin" id="fin"></div>
+    <div class="scare" id="scare"><video id="sv" playsinline preload="auto"></video></div>
+  </div>
+  <div class="row"><small>깜짝 연출 미리보기</small><button class="chip" data-sc="0">허수아비</button><button class="chip" data-sc="1">그림자</button><button class="chip" data-sc="2">인형</button><button class="chip" id="snd">소리 켬</button></div>
+  <p class="note">마우스를 움직이면 작은 손전등이 <b>조금 늦게</b> 따라와요. 터치 화면에서는 손가락으로 끌어서 비춰요. 숫자는 빛이 닿는 곳에서만 보이고, 숫자를 찾으면 잠시 뒤 다음 장소로 넘어가요.</p>
+</div>
+<script>
+(()=>{
+const W=1328,H=747,R=78,TL=7.5,TOTAL=120,STAGES=3,LAG=2.6,INPUT_MIN=20;
+const EMB=/[?&]embed=1/.test(location.search);if(EMB)document.documentElement.classList.add('emb');
+const P=[{n:'백골',c:'#D9D2BE'},{n:'유령',c:'#4FB8AE'},{n:'촛불',c:'#E0A53A'},{n:'저주',c:'#9B6FD6'}];
+const $=id=>document.getElementById(id),cv=$('cv'),ctx=cv.getContext('2d');
+const lit=document.createElement('canvas');lit.width=W;lit.height=H;const lctx=lit.getContext('2d');
+const rnd=(a,b)=>a+Math.random()*(b-a);
+let audio=null;
+function ac(){try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();}catch(e){}return audio}
+function tone(f,d=.15,type='triangle',v=.18,when=0,f2){const c=ac();if(!c)return;const t=c.currentTime+when,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(c.destination);o.start(t);o.stop(t+d+.05);}
+const sSeen=()=>{tone(440,.18,'sine',.12);tone(660,.22,'sine',.1,.09);};
+const sKey=()=>tone(520,.05,'square',.06);
+const sOk=()=>[523,659,784,1047].forEach((f,i)=>tone(f,.22,'triangle',.18,i*.08));
+const sNo=()=>tone(150,.3,'sawtooth',.16,0,70);
+const sSwap=()=>tone(180,.35,'sawtooth',.12,0,60);
+const sTick=f=>tone(f,.07,'square',.08);
+const sEnd=ok=>ok?[523,659,784,1047].forEach((f,i)=>tone(f,.25,'triangle',.2,i*.1)):[330,262,196].forEach((f,i)=>tone(f,.3,'sawtooth',.14,i*.14));
+
+const BG=[1,2,3,4].map(i=>{const im=new Image();im.src='flashlight/bg'+i+'.jpg';return im;});
+const SC=['flashlight/s1.mp4','flashlight/s2.mp4','flashlight/s3.mp4'];let soundOn=true;
+let G=null,raf=0,L={x:W/2,y:H/2},T={x:W/2,y:H/2},lastT=0,seq=[],lastP=-1;
+function seqLane(k){while(seq.length<=k){const p=[0,1,2,3].sort(()=>Math.random()-.5);if(p[0]===lastP){const t=p[0];p[0]=p[1];p[1]=t;}seq.push(...p);lastP=p[3];}return seq[k];}
+
+function placeStage(i){
+  const n=G.nums[i];n.vis=0;n.seen=false;
+  L={x:W/2,y:H/2};T={x:W/2,y:H/2};
+}
+function start(){
+  cancelAnimationFrame(raf);ac();seq=[];lastP=-1;
+  const order=[0,1,2,3].sort(()=>Math.random()-.5).slice(0,STAGES);
+  const digs=[8,6,0]; // 방탈출 비밀번호 860
+  const nums=order.map((b,i)=>{
+    // 숫자 위치: 화면 가장자리 피하고, 시작 손전등 위치(중앙)에서는 멀리
+    let x,y;do{x=rnd(110,W-110);y=rnd(120,H-110);}while(Math.hypot(x-W/2,y-H/2)<260);
+    return {d:digs[i],x,y,rot:rnd(-.16,.16),sz:rnd(54,64),seen:false,vis:0,img:BG[b]};});
+  const cl=[0,1,2].sort(()=>Math.random()-.5);
+  G={t0:performance.now(),nums,stage:0,code:digs.join(''),entry:[],wrong:0,phase:'search',over:false,lastSec:99,scaring:false,warnUntil:0,pauseAt:0,
+     swapAt:-1,lastK:-1,advAt:0,fadeAt:0,
+     plan:[{at:rnd(22,50),clip:cl[0],done:false},{at:rnd(70,100),clip:cl[1],done:false}]};
+  L={x:W/2,y:H/2};T={x:W/2,y:H/2};lastT=performance.now();
+  $('fin').hidden=true;$('keys').style.display='none';$('msg').textContent=`찾은 숫자 0 / ${STAGES}`;
+  raf=requestAnimationFrame(loop);
+}
+function turnInfo(now){const el=Math.max(0,(now-G.t0)/1000),k=Math.floor(el/TL);return {el,k,p:seqLane(k),f:1-((el-k*TL)/TL)};}
+function loop(now){
+  if(!G||G.over)return;
+  if(G.scaring){lastT=now;raf=requestAnimationFrame(loop);return;}
+  if(G.warnUntil&&now>=G.warnUntil){G.warnUntil=0;playScare(G.warnClip,true);raf=requestAnimationFrame(loop);return;}
+  const dt=Math.min(.05,Math.max(0,(now-lastT)/1000));lastT=now;
+  if(G.phase==='input'){
+    const left=Math.max(0,G.inputEnd-now)/1000;$('rd').textContent=`⏱ ${Math.ceil(left)}초`;$('tb').style.transform=`scaleX(${left/G.inputDur})`;
+    if(left<=0)return finish(false);
+    raf=requestAnimationFrame(loop);return;
+  }
+  const k=1-Math.exp(-LAG*dt);L.x+=(T.x-L.x)*k;L.y+=(T.y-L.y)*k;
+  const ti=turnInfo(now),left=Math.max(0,TOTAL-ti.el);
+  $('who').textContent='전원 함께';$('who').style.background='#D9D2BE';
+  $('tb').style.background='#D9D2BE';$('tb').style.transform=`scaleX(${left/TOTAL})`;
+  const sec=Math.ceil(left);$('rd').textContent=`⏱ ${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
+  if(sec<=5&&sec!==G.lastSec){G.lastSec=sec;sTick(sec===0?880:660);}
+  const n=G.nums[G.stage];
+  if(G.fadeAt){ // 다음 장소로 넘어가는 중
+    if(now>=G.fadeAt){G.fadeAt=0;G.stage++;
+      if(G.stage>=STAGES){return toInput();}
+      L={x:W/2,y:H/2};T={x:W/2,y:H/2};}
+  }else{
+    const inb=Math.hypot(n.x-L.x,n.y-L.y)<R*.7;
+    n.vis+=((inb?1:0)-n.vis)*Math.min(1,dt*10);
+    if(!n.seen&&inb&&n.vis>.75){n.seen=true;sSeen();$('msg').textContent=`찾은 숫자 ${G.stage+1} / ${STAGES}`;G.fadeAt=now+1800;}
+  }
+  draw(now,ti);
+  if(!G.warnUntil){const sc=G.plan.find(p=>!p.done&&ti.el>=p.at&&left>6);if(sc){sc.done=true;G.warnUntil=now+700;G.warnClip=sc.clip;tone(70,.7,'sawtooth',.16,0,40);}}
+  if(left<=0)return finish(false);
+  raf=requestAnimationFrame(loop);
+}
+function numText(c,n){
+  c.save();c.translate(n.x,n.y);c.rotate(n.rot);c.textAlign='center';c.textBaseline='middle';
+  c.font=`900 ${n.sz}px "Noto Serif KR",serif`;
+  c.lineWidth=5;c.strokeStyle='rgba(15,0,0,.8)';c.strokeText(n.d,0,0);
+  c.fillStyle='#b8242b';c.fillText(n.d,0,0);
+  c.restore();
+}
+function draw(now,ti){
+  const n=G.nums[Math.min(G.stage,STAGES-1)],img=n.img;
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  let blackout=G.swapAt>0&&now-G.swapAt<420?1-(now-G.swapAt)/420:0;
+  if(G.warnUntil)blackout=Math.random()<.55?1:.25;
+  const fl=1+Math.sin(now/90)*.02;
+  const r=R*fl*(blackout>0?1-blackout*.55:1);
+  lctx.globalCompositeOperation='source-over';lctx.clearRect(0,0,W,H);
+  lctx.drawImage(img,0,0,W,H);numText(lctx,n);
+  lctx.globalCompositeOperation='destination-in';
+  const gr=lctx.createRadialGradient(L.x,L.y,0,L.x,L.y,r);
+  gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(.6,'rgba(0,0,0,.95)');gr.addColorStop(1,'rgba(0,0,0,0)');
+  lctx.fillStyle=gr;lctx.fillRect(0,0,W,H);
+  ctx.drawImage(lit,0,0);
+  ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.9;ctx.drawImage(lit,0,0);ctx.globalAlpha=1;
+  ctx.globalCompositeOperation='source-over';
+  if(G.fadeAt){const a=Math.max(0,Math.min(1,(now-(G.fadeAt-400))/400));if(a>0){ctx.fillStyle=`rgba(0,0,0,${a})`;ctx.fillRect(0,0,W,H);}}
+}
+function toInput(){
+  G.phase='input';G.entry=[];{const nw=performance.now();G.inputEnd=Math.max(nw+INPUT_MIN*1000,G.t0+TOTAL*1000);G.inputDur=(G.inputEnd-nw)/1000;}
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  $('who').textContent='전원';$('who').style.background='#c4262e';$('tb').style.background='#c4262e';
+  drawSlots();$('keys').style.display='flex';$('msg').textContent='암호 입력';
+  raf=requestAnimationFrame(loop);
+}
+function drawSlots(){$('slots').innerHTML=Array.from({length:STAGES},(_,i)=>`<div class="slot ${i===G.entry.length?'on':''}">${G.entry[i]??''}</div>`).join('');}
+function buildPad(){
+  $('pad').innerHTML=[1,2,3,4,5,6,7,8,9,0].map(d=>`<button data-d="${d}">${d}</button>`).join('')+'<button class="del" data-d="del">지움</button>';
+  $('pad').querySelectorAll('button').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();press(b.dataset.d);});});
+}
+function press(d){
+  if(!G||G.over||G.phase!=='input'||G.busy)return;ac();sKey();
+  if(d==='del'){G.entry.pop();drawSlots();return;}
+  if(G.entry.length>=STAGES)return;
+  G.entry.push(d);drawSlots();
+  if(G.entry.length===STAGES){
+    if(G.entry.join('')===G.code){G.busy=true;sOk();setTimeout(()=>finish(true),700);}
+    else{G.wrong++;sNo();const s=$('slots');s.classList.remove('shake');void s.offsetWidth;s.classList.add('shake');G.busy=true;setTimeout(()=>{if(G){G.entry=[];G.busy=false;drawSlots();}},450);}
+  }
+}
+function finish(ok){
+  if(!G||G.over)return;G.over=true;cancelAnimationFrame(raf);
+  const stars=ok?(G.wrong<=1?3:G.wrong<=3?2:1):0;
+  sEnd(stars>0);$('keys').style.display='none';
+  const why=G.phase==='input'?'입력 시간이 끝났어요':'숫자를 다 찾지 못했어요';
+  $('fin').innerHTML=`<div class="panel"><div class="stars">${[0,1,2].map(i=>i<stars?'⭐':'☆').join('')}</div>
+   <h2>${ok?'암호 해제!':'⏰ 실패...'}</h2><p>${ok?`암호는 <b>${G.code}</b> · 틀린 횟수 <b>${G.wrong}</b>번`:`${why} · 정답은 <b>${G.code}</b>`}</p>
+   <div style="margin-top:14px"><button class="big" id="again">↻ 다시 하기</button></div></div>`;
+  $('fin').hidden=false;$('again').onclick=showStart;
+  if(EMB)setTimeout(()=>parent.postMessage({hw:'done',stars},'*'),2200);
+}
+function showStart(){
+  cancelAnimationFrame(raf);G=null;ctx.globalCompositeOperation='source-over';ctx.clearRect(0,0,W,H);
+  const im=BG[Math.floor(Math.random()*4)];if(im.complete)ctx.drawImage(im,0,0,W,H);ctx.fillStyle='rgba(0,0,0,.8)';ctx.fillRect(0,0,W,H);
+  $('rd').textContent='준비';$('who').textContent='-';$('who').style.background='#555';$('msg').textContent=`찾은 숫자 0 / ${STAGES}`;$('tb').style.transform='scaleX(1)';
+  $('keys').style.display='none';
+  $('fin').hidden=false;$('fin').innerHTML=`<div class="panel"><h2>어둠 속의 암호</h2><p>3개의 장소에 <b>숫자가 하나씩</b> 숨어 있어요.<br>4명이 <b>한 화면을 함께 보며</b> 숫자를 찾아 <b>기억</b>하세요.<br>3곳을 다 찾으면 숫자를 <b>순서대로 입력</b>해요. 제한 시간은 <b>2분</b>!</p><button class="big" id="go">▶ 시작</button></div>`;
+  $('go').onclick=start;
+}
+const sv=$('sv'),scEl=$('scare');
+function playScare(i,inGame){
+  const done=()=>{sv.onended=null;sv.pause();scEl.classList.remove('on');if(inGame&&G){G.t0+=performance.now()-G.pauseAt;G.scaring=false;if(G.inputEnd)G.inputEnd+=performance.now()-G.pauseAt;}};
+  if(inGame&&G){G.scaring=true;G.pauseAt=performance.now();}
+  sv.src=SC[i];sv.muted=!soundOn;sv.volume=.9;sv.currentTime=0;scEl.classList.add('on');
+  sv.onended=done;setTimeout(()=>{if(scEl.classList.contains('on')&&(sv.ended||sv.paused))done();},4200);
+  const pr=sv.play();if(pr&&pr.catch)pr.catch(done);
+}
+document.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>{ac();if(!G)playScare(+b.dataset.sc,false);});
+$('snd').onclick=()=>{soundOn=!soundOn;$('snd').textContent=soundOn?'소리 켬':'소리 끔';};
+function pos(e){const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height};}
+cv.addEventListener('pointermove',e=>{const p=pos(e);T.x=p.x;T.y=p.y;});
+cv.addEventListener('pointerdown',e=>{const p=pos(e);T.x=p.x;T.y=p.y;try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+buildPad();
+if(EMB){parent.postMessage({hw:'h',h:Math.ceil(747*innerWidth/1328)},'*');addEventListener('resize',()=>parent.postMessage({hw:'h',h:Math.ceil(747*innerWidth/1328)},'*'));
+  }
+BG[0].onload=showStart;showStart();
+window.__fl={start,press,get G(){return G},get L(){return L},get T(){return T},TL};
+})();
+</script>
+</body></html>

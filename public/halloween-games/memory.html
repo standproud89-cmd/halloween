@@ -1,6 +1,6 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>
 <title>4인 해골 카드 짝 맞추기</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@700;900&display=swap">
 <style>
 :root{--bg:#0b0b0d;--card:#18171a;--line:#3a1a1a;--fg:#eceaea;--muted:#9a9a9e;--red:#FF3131;color-scheme:dark}
 *{box-sizing:border-box}
@@ -40,7 +40,7 @@ h1{margin:0;font-size:22px;font-weight:900}
 @keyframes ok{40%{transform:rotateY(180deg) scale(1.12)}}
 .card.wrong .front{background:#ffb3b3;animation:wr .3s}
 @keyframes wr{25%{transform:rotateY(180deg) translateX(-5px)}75%{transform:rotateY(180deg) translateX(5px)}}
-.okmark{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-weight:900;font-size:clamp(34px,7vw,80px);color:#7CFFA0;text-shadow:0 0 30px #3DDC84;background:rgba(11,11,13,.5);pointer-events:none;text-align:center;line-height:1.1}
+.okmark{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-weight:900;font-size:clamp(34px,7vw,80px);color:#7CFFA0;text-shadow:0 0 30px #C4262E;background:rgba(11,11,13,.5);pointer-events:none;text-align:center;line-height:1.1}
 .lane.done .okmark{display:flex}
 .peek{position:absolute;left:0;right:0;bottom:0;text-align:center;font-weight:900;color:#ffd27a;font-size:13px;padding:2px 0 3px;display:none}
 .lane.peeking .peek{display:block}
@@ -58,6 +58,51 @@ h1{margin:0;font-size:22px;font-weight:900}
  <defs><g id="sk"><path d="M50 4C24 4 9 22 9 44c0 14 6 22 14 27v12c0 4 3 7 7 7h40c4 0 7-3 7-7V71c8-5 14-13 14-27C91 22 76 4 50 4z" fill="#ECE6D3"/><ellipse cx="33" cy="46" rx="11" ry="13" fill="#17121a"/><ellipse cx="67" cy="46" rx="11" ry="13" fill="#17121a"/><path d="M50 58l-6 12h12z" fill="#17121a"/></g></defs>
 </svg>
 
+<style id="hz">
+:root{--bg:#030203;--card:#0c0809;--line:#3a0d10;--fg:#d9d2be;--muted:#8a7f78;--red:#b3121b}
+html,body{font-family:'Noto Sans KR',system-ui,sans-serif;background:#030203 url(bg-dungeon.jpg) center/cover no-repeat fixed!important;min-height:100%}
+h1,.panel h2,.hud .rd,.hud .msg,.ltop b{font-family:'Noto Serif KR',serif}
+.chip{border-radius:4px;background:#0c0809;border-color:#3a2a2a}
+.chip[aria-pressed="true"]{background:#7d0f16;border-color:#c4262e;color:#f1e3d3}
+.stage{border:2px solid #2a0a0d;border-radius:6px;background:transparent;box-shadow:none}
+.hud{position:relative;z-index:7;background:linear-gradient(#000c,#0006);border-bottom:1px solid #2a0a0d}
+.hud .rd{color:#d9d2be;text-shadow:0 0 12px #000}
+.hud .msg{color:#d9b65c}
+.tbar{background:#120a0a}.tbar i{background:linear-gradient(90deg,#4d070c,#c4262e)}
+.lane{background:linear-gradient(180deg,rgba(0,0,0,.32),rgba(0,0,0,.08) 55%,rgba(0,0,0,.4));border-right:1px solid rgba(120,30,30,.35);box-shadow:inset 0 0 30px #0006}
+.ltop{text-shadow:0 0 10px color-mix(in srgb,var(--c) 70%,transparent);letter-spacing:.04em}
+.card{filter:drop-shadow(0 6px 8px #000c)}
+.back{background:radial-gradient(circle at 50% 35%,#2a1d1d,#0d0808 75%);border:2px solid color-mix(in srgb,var(--c) 55%,#1a0f0f);box-shadow:inset 0 0 18px #000,0 0 10px color-mix(in srgb,var(--c) 22%,transparent)}
+.back svg{display:none}
+.front{background:radial-gradient(circle at 50% 40%,#2c2420,#0b0807 80%);border:2px solid #6b5a4a;filter:none}
+.front{overflow:hidden;padding:20%;background:#030203!important}.front img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;border-radius:6px}
+.card.matched .front{background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--c) 30%,#1a1210),#0b0807 85%);border-color:var(--c);box-shadow:0 0 18px color-mix(in srgb,var(--c) 60%,transparent)}
+.card.wrong .front{background:radial-gradient(circle,#5a0f12,#1a0506);border-color:#c4262e}
+.okmark{color:#d9d2be;text-shadow:0 0 22px #b3121b;background:rgba(0,0,0,.6);font-family:'Noto Serif KR',serif}
+.peek{color:#c4262e;font-family:'Noto Serif KR',serif;text-shadow:0 0 8px #000}
+.fin{background:rgba(2,1,2,.86)}
+.panel h2{color:#c4262e;letter-spacing:.05em;text-shadow:0 0 22px rgba(196,38,46,.55),0 2px 0 #000}
+.panel p{color:#bdb4a2}
+.big{background:linear-gradient(#8f1119,#4d070c);color:#f1e3d3;border:1px solid #c4262e;border-radius:6px;box-shadow:0 0 30px rgba(179,18,27,.5),inset 0 0 12px #0008;font-family:'Noto Serif KR',serif}
+#fin .panel>div:first-child{filter:sepia(1) hue-rotate(-50deg) saturate(4)}
+.hzfx{position:absolute;inset:0;pointer-events:none;z-index:6;overflow:hidden}
+.hzfx .vg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(0,0,0,.6) 100%)}
+.hzfx .gr{position:absolute;inset:-50%;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");animation:gr .6s steps(4) infinite}
+@keyframes gr{25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
+.hzfx .fl{position:absolute;inset:0;background:#000;opacity:0;animation:fl 7s infinite}
+@keyframes fl{0%,88%,100%{opacity:0}89%{opacity:.35}90%{opacity:0}92%{opacity:.5}93%{opacity:.05}}
+.hzfx svg{position:absolute;left:0;top:0;width:100%;height:30px}
+.lanes{gap:14px;padding:12px 12px 0}
+.lane{border:2px solid color-mix(in srgb,var(--c) 70%,#000)!important;border-radius:10px;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 14%,rgba(0,0,0,.55)),rgba(0,0,0,.55) 40%)!important;box-shadow:0 0 22px color-mix(in srgb,var(--c) 35%,transparent),inset 0 0 26px #000a!important;overflow:hidden}
+.lane::before{content:'';position:absolute;left:0;right:0;top:0;height:5px;background:var(--c);box-shadow:0 0 14px var(--c)}
+.ltop{padding-top:8px!important;font-family:'Noto Serif KR',serif}
+.ltop span:first-child{font-weight:900;font-size:clamp(15px,2.2vw,24px);color:var(--c);text-shadow:0 0 12px var(--c)}
+#L0 .ltop span:first-child::before{content:'1P'}#L1 .ltop span:first-child::before{content:'2P'}#L2 .ltop span:first-child::before{content:'3P'}#L3 .ltop span:first-child::before{content:'4P'}
+.stage{padding-bottom:12px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,.15) 40%,rgba(0,0,0,.7) 100%);pointer-events:none;z-index:0}
+.app{position:relative;z-index:1}
+.ctrl{background:rgba(8,4,4,.72)}
+</style>
 <div class="app">
   <div>
     <h1>🃏 4인 해골 카드 짝 맞추기</h1>
@@ -66,8 +111,8 @@ h1{margin:0;font-size:22px;font-weight:900}
 
   <div class="ctrl">
     <div class="grp"><small>난이도</small>
-      <button class="chip" data-level="easy" aria-pressed="true">쉬움 (카드 12장 · 6쌍)</button>
-      <button class="chip" data-level="hard" aria-pressed="false">어려움 (카드 16장 · 8쌍)</button>
+      <button class="chip" data-level="easy" aria-pressed="true">쉬움 (카드 12장)</button>
+      <button class="chip" data-level="hard" aria-pressed="false">어려움 (카드 12장 · 빠르게)</button>
     </div>
     <div class="grp">
       <button class="chip" id="bStart">▶ 시작</button>
@@ -87,13 +132,13 @@ h1{margin:0;font-size:22px;font-weight:900}
 
 <script>
 (()=>{
-const P=[{n:'보라',c:'#B26BE8'},{n:'파랑',c:'#4C9BFF'},{n:'주황',c:'#FFB13B'},{n:'초록',c:'#3DDC84'}];
-const SYM=['💀','🎃','👻','🦇','🕷️','🕯️','🧛','🧟','🍬','🔮','🕸️','🐈‍⬛','🧙','⚰️','🌙','🦉'];
+const P=[{n:'백골',c:'#C4262E'},{n:'유령',c:'#C4262E'},{n:'촛불',c:'#C4262E'},{n:'저주',c:'#C4262E'}];
+const SYM=['bat','scarecrow','pumpkin','coffin','doll','skull','candle','spider'];
 const $=id=>document.getElementById(id);
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const CFG=[
- {time:75,cols:3,pairs:6,peek:2200,back:850,stars:[9,16,24]},
- {time:75,cols:4,pairs:8,peek:1800,back:600,stars:[8,15,22]}
+ {time:60,cols:3,pairs:6,peek:4000,back:850,stars:[7,13,19]},
+ {time:60,cols:3,pairs:6,peek:4000,back:600,stars:[7,13,19]}
 ];
 let level=0,G=null,raf=0,timers=[];
 function later(fn,ms){const id=setTimeout(fn,ms);timers.push(id);return id;}
@@ -126,7 +171,7 @@ function buildBoard(l){
   const cards=[...syms,...syms].sort(()=>Math.random()-.5).map((s,i)=>({s,i,open:false,matched:false}));
   S.cards=cards;S.first=-1;S.lock=true;S.found=0;S.done=false;
   const gr=$('GR'+l);gr.style.gridTemplateColumns=`repeat(${C.cols},1fr)`;
-  gr.innerHTML=cards.map((c,i)=>`<div class="card open" data-l="${l}" data-i="${i}"><div class="in"><div class="face back"><svg viewBox="0 0 100 100"><use href="#sk"/></svg></div><div class="face front">${c.s}</div></div></div>`).join('');
+  gr.innerHTML=cards.map((c,i)=>`<div class="card open" data-l="${l}" data-i="${i}"><div class="in"><div class="face back"><svg viewBox="0 0 100 100"><use href="#sk"/></svg></div><div class="face front"><img src="cards/${c.s}.jpg" draggable="false" alt=""></div></div></div>`).join('');
   $('L'+l).classList.remove('done');$('L'+l).classList.add('peeking');
   $('PG'+l).textContent=`0 / ${C.pairs}`;
   later(()=>{ // 외울 시간이 끝나면 모두 뒤집기
@@ -247,7 +292,7 @@ window.__mc={get G(){return G},start,flip};
 (()=>{
 if(!(window.__EMBED||/[?&]embed=1/.test(location.search)))return;
 const st=document.createElement('style');
-st.textContent='.app>div:first-child,.ctrl,.legend,.note,h1,.sub,#again,#home,#bAuto,#bStop{display:none!important}html,body{background:#000!important;overflow:hidden!important}body{padding:0!important}.app{max-width:none!important;gap:0!important}.stage{border:none!important;border-radius:0!important;min-height:643px}.panel{max-width:960px!important}.panel h2{font-size:76px!important;margin-bottom:14px!important}.panel p{font-size:30px!important;line-height:1.5!important;margin-bottom:22px!important}.big{font-size:36px!important;padding:20px 70px!important}';
+st.textContent='.app>div:first-child,.ctrl,.legend,.note,h1,.sub,#again,#home,#bAuto,#bStop{display:none!important}html,body{overflow:hidden!important}body{padding:0!important}.app{max-width:none!important;gap:0!important}.stage{border:none!important;border-radius:0!important;min-height:643px}.panel{max-width:960px!important}.panel h2{font-size:76px!important;margin-bottom:14px!important}.panel p{font-size:30px!important;line-height:1.5!important;margin-bottom:22px!important}.big{font-size:36px!important;padding:20px 70px!important}';
 document.body.appendChild(st);
 let sent=false;
 const chk=()=>{if(sent)return;for(const id of ['ov','fin']){const el=document.getElementById(id);if(el&&!el.hidden){const m=(el.innerText||'').match(/[\u2B50\u2606]{3}/);if(m){sent=true;el.style.visibility='hidden';const stars=(m[0].match(/\u2B50/g)||[]).length;setTimeout(()=>parent.postMessage({hw:'done',stars},'*'),250);}}}};
@@ -256,12 +301,12 @@ const rep=()=>{const s=document.getElementById('stage');if(s)parent.postMessage(
 addEventListener('resize',rep);const stg=document.getElementById('stage');if(window.ResizeObserver&&stg)new ResizeObserver(rep).observe(stg);setInterval(rep,400);rep();
 })();
 </script>
-<script>window.__TURN_CFG={tl:6,grace:2500};</script>
+<script>window.__TURN_CFG={tl:5,grace:4000};</script>
 <script id="hw-turns">
 (()=>{
 if(!(window.__EMBED||/[?&]embed=1/.test(location.search)))return;
 const CFG=Object.assign({tl:6,grace:0,manual:false,top:0},window.__TURN_CFG||{});
-const COL=['#B26BE8','#4C9BFF','#FFB13B','#3DDC84'];
+const COL=['#C4262E','#C4262E','#C4262E','#C4262E'];
 const stage=document.getElementById('stage');if(!stage)return;
 const css=document.createElement('style');
 css.textContent='.ov,.fin{z-index:20}.hwt{position:absolute;z-index:8;display:none;pointer-events:none;box-sizing:border-box;transition:background .25s;line-height:1.2;overflow:hidden}.hwt.off{display:block;background:rgba(2,0,0,.82);pointer-events:auto;touch-action:none}.hwt.on{display:block;box-shadow:inset 0 0 0 5px var(--c),inset 0 0 46px var(--c)}.hwt .pill{display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);white-space:nowrap;font:900 34px "Noto Sans KR",sans-serif;background:var(--c);color:#0b0b0d;padding:4px 22px;border-radius:40px;animation:hwp .7s ease-out}.hwt.on .pill{display:block}.hwt .bar{display:none;position:absolute;left:0;right:0;bottom:0;height:10px;background:var(--c);transform-origin:left}.hwt.on .bar{display:block}.hwt .zz{display:none;position:absolute;inset:0;align-items:center;justify-content:center;font:900 64px sans-serif;color:rgba(255,255,255,.22)}.hwt.off .zz{display:flex}@keyframes hwp{0%{transform:translateX(-50%) scale(1.5);opacity:0}100%{transform:translateX(-50%) scale(1);opacity:1}}';
@@ -311,4 +356,13 @@ setInterval(()=>{
 document.addEventListener('wheel',function(e){if(e.ctrlKey)e.preventDefault()},{capture:true,passive:false});
 document.addEventListener('touchmove',function(e){e.preventDefault()},{capture:true,passive:false});
 document.addEventListener('keydown',function(e){var k=(e.key||'').toLowerCase();if((e.ctrlKey||e.metaKey)&&['+','-','=','0','s','p','u','a','f'].indexOf(k)>-1)e.preventDefault()},true);})();</script>
+<script>
+(()=>{const st=document.getElementById('stage');if(!st)return;
+let d='M0 0H1100V10';let x=1100;const rnd=(a,b)=>a+Math.random()*(b-a);
+let p='M0 0';let cx=0;while(cx<1100){const w=rnd(14,34),len=Math.random()<.35?rnd(10,22):rnd(3,7);p+=`H${cx+w*.35}V${len}q${w*.15} 6 ${w*.3} 0V10H${cx+w}`;cx+=w}
+p+='V0Z';
+const f=document.createElement('div');f.className='hzfx';
+f.innerHTML='<div class="vg"></div><div class="gr"></div><div class="fl"></div><svg viewBox="0 0 1100 46" preserveAspectRatio="none"><path d="'+p+'" fill="#4d070c" opacity=".85"/></svg>';
+st.appendChild(f);})();
+</script>
 </body></html>
