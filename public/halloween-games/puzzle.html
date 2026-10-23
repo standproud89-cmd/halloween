@@ -37,7 +37,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:'Noto
 <script>
 (()=>{
 const EMBED=/[?&]embed=1/.test(location.search);
-const IMGS=['doll','book','skull','lady'],COLS=4,ROWS=3,CW=160,CH=160,BX=344,BY=96,TIME=120,SNAP=44,PEEK=3500;
+const IMGS=['doll','book','skull','lady','skull2','door','frame'],COLS=4,ROWS=3,CW=160,CH=160,BX=344,BY=96,TIME=120,SNAP=44,PEEK=3500;
 const _sn=new Audio('../sfx/snap.mp3');_sn.preload='auto';function snap(){try{const a=_sn.cloneNode();a.volume=1;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
 const $=id=>document.getElementById(id),wrap=$('wrap'),board=$('board');
 let pieces=[],placed=0,left=TIME,timer=null,state='idle',img='',sent=false;
@@ -47,15 +47,15 @@ addEventListener('resize',fit);fit();
 function post(stars){if(sent)return;sent=true;setTimeout(()=>parent.postMessage({hw:'done',stars},'*'),EMBED?1800:99999999)}
 function slots(){const a=[];for(const x of [0,160])for(let r=0;r<4;r++)a.push([24+x,88+r*(CH+4)]);for(const x of [0,160])for(let r=0;r<4;r++)a.push([1328-24-CW-x,88+r*(CH+4)]);return a}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
-let t0=0,solved=0,lastImg='',totalPlaced=0;
+let t0=0,solved=0,lastImg='',totalPlaced=0,done=[];
 function start(){
- clearInterval(timer);timer=null;t0=0;solved=0;totalPlaced=0;left=TIME;sent=false;lastImg='';
+ clearInterval(timer);timer=null;t0=0;solved=0;totalPlaced=0;left=TIME;sent=false;lastImg='';done=[];
  $('ov').hidden=true;$('t').textContent=TIME;$('bi').style.transform='scaleX(1)';
  round();
 }
 function round(){
  pieces.forEach(p=>p.el.remove());pieces=[];placed=0;
- let n;do{n=IMGS[Math.random()*IMGS.length|0]}while(n===lastImg&&IMGS.length>1);img=lastImg=n;
+ const pool=IMGS.filter(x=>!done.includes(x));const n=pool[Math.random()*pool.length|0];img=lastImg=n;
  const url=`url(puzzle/${img}.jpg)`;
  $('ghost').style.backgroundImage=url;$('full').style.backgroundImage=url;
  $('sc').textContent='0 / 12';
@@ -80,8 +80,8 @@ function bind(p){const el=p.el;let id=null,ox=0,oy=0;
   if(Math.hypot(x-tx,y-ty)<SNAP){p.placed=true;snap();el.classList.add('ok');el.style.left=(tx-wrap.offsetLeft*0)+'px';el.style.top=ty+'px';placed++;totalPlaced++;$('sc').textContent=placed+' / 12';if(placed===12)won()}
   else{const nx=Math.max(0,Math.min(1328-CW,x)),ny=Math.max(80,Math.min(747-CH,y));el.style.left=nx+'px';el.style.top=ny+'px';el.style.transform=`rotate(${p.rot}deg)`}};
  el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)}
-function won(){if(state!=='play')return;state='won';solved++;$('full').style.opacity=1;$('cnt').textContent='완성! 다음 그림이 나와요… (시간이 끝날 때까지 계속)';
- setTimeout(()=>{if(state==='won'){if(left>6)round();else end()}},1800)}
+function won(){if(state!=='play')return;state='won';solved++;done.push(img);$('full').style.opacity=1;$('cnt').textContent='완성! 다음 그림이 나와요…';
+ setTimeout(()=>{if(state==='won'){if(left>6&&done.length<IMGS.length)round();else end()}},1800)}
 function end(){if(state==='end')return;state='end';clearInterval(timer);timer=null;
  const stars=solved>=2?3:solved===1?2:totalPlaced>=6?1:0;
  $('cnt').textContent='';

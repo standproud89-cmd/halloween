@@ -58,7 +58,6 @@ const HW_STAGES = [
   { id: "puzzle", label: "그림 퍼즐 맞추기" }, // 2분
   { id: "flashlight", label: "손전등 암호 찾기" }, // 2분
 ];
-const HW_PASSWORD = "860"; // 성공 시 보여줄 자물쇠 비밀번호
 const HW_LOCKS = HW_STAGES.length - 1; // 자물쇠 = 손도장 이후 3개 미션
 
 function fmtClock(sec) {
@@ -789,17 +788,7 @@ function HalloweenEvent({ onPhase }) {
             <p style={{ fontFamily: "'East Sea Dokdo', 'Nanum Brush Script', 'Pretendard', serif", fontSize: 72, lineHeight: 1.1, color: "#ff3a3a", textShadow: "0 0 26px #b00000" }}>
               봉인이 풀렸다.
             </p>
-            <p className="mt-3 mb-8" style={{ fontFamily: "'East Sea Dokdo', 'Nanum Brush Script', 'Pretendard', serif", fontSize: 58, color: "#d4262c", textShadow: "0 0 20px #7a0000" }}>뒤에 있는 자물쇠를 풀어라.</p>
-            <div className="flex items-center justify-center gap-6 mb-12">
-              {HW_PASSWORD.split("").map((d, i) => (
-                <div key={i} className="flex items-center justify-center font-black"
-                  style={{ width: 200, height: 260, borderRadius: 28, backgroundColor: "#0a0505", border: "3px solid #8a1a1f",
-                    boxShadow: "0 0 50px #7a000066, inset 0 0 40px #2a0000", color: "#ff3a3a", fontSize: 190, lineHeight: 1,
-                    fontFamily: "'Cinzel', 'Pretendard', serif", textShadow: "0 0 30px #e00000, 0 0 70px #a00000" }}>
-                  {d}
-                </div>
-              ))}
-            </div>
+            <p className="mt-3 mb-12" style={{ fontFamily: "'East Sea Dokdo', 'Nanum Brush Script', 'Pretendard', serif", fontSize: 58, color: "#d4262c", textShadow: "0 0 20px #7a0000" }}>너희는 이 저주에서 탈출했다.</p>
             <button onClick={goHome}
               className="px-8 py-3 rounded-full font-bold text-lg"
               style={{ backgroundColor: "transparent", color: "#5a4d4d", border: "1px solid #2b0e0e" }}>

@@ -55,12 +55,12 @@ body *{color:#d4262c!important}.emb .who{display:none!important}
 </head><body>
 <div class="app">
   <div><h1>손전등 암호 찾기</h1>
-  <p class="sub">불 꺼진 폐허에 3개의 장소마다 숨겨진 <b>숫자 1개</b>를 손전등으로 찾아 기억하세요. 4명이 한 화면을 함께 보며 손전등으로 3곳을 모두 찾으면 <b>찾은 숫자를 순서대로</b> 입력하는 화면이 나와요. 찾는 시간은 1분 30초, 중간에 2번 불이 깜빡이며 무언가 튀어나와요.</p></div>
+  <p class="sub">불 꺼진 폐허에 4개의 장소마다 숨겨진 <b>숫자 1개</b>를 손전등으로 찾아 기억하세요. 4명이 한 화면을 함께 보며 손전등으로 4곳을 모두 찾으면 <b>찾은 숫자를 순서대로</b> 입력하는 화면이 나와요. 찾는 시간은 1분 30초, 중간에 2번 불이 깜빡이며 무언가 튀어나와요.</p></div>
   <div class="stage" id="stage">
-    <div class="hud"><div class="msg" id="msg">발견 0 / 3</div><div class="rd" id="rd">준비</div><div class="who" id="who">-</div></div>
+    <div class="hud"><div class="msg" id="msg">발견 0 / 4</div><div class="rd" id="rd">준비</div><div class="who" id="who">-</div></div>
     <div class="tbar"><i id="tb"></i></div>
     <canvas id="cv" width="1328" height="747"></canvas>
-            <div class="keys" id="keys"><h3>찾은 숫자를 순서대로 입력하세요</h3><p>1번 장면부터 3번 장면까지, 찾은 순서 그대로!</p><div class="slots" id="slots"></div><div class="pad" id="pad"></div></div>
+            <div class="keys" id="keys"><h3>찾은 숫자를 순서대로 입력하세요</h3><p>1번 장면부터 4번 장면까지, 찾은 순서 그대로!</p><div class="slots" id="slots"></div><div class="pad" id="pad"></div></div>
     <div class="fin" id="fin"></div>
     <div class="scare" id="scare"><video id="sv" playsinline preload="auto"></video></div>
   </div>
@@ -69,7 +69,7 @@ body *{color:#d4262c!important}.emb .who{display:none!important}
 </div>
 <script>
 (()=>{
-const W=1328,H=747,R=44,TL=7.5,TOTAL=120,STAGES=3,LAG=2.6,INPUT_MIN=20;
+const W=1328,H=747,R=44,TL=7.5,TOTAL=120,STAGES=4,LAG=2.6,INPUT_MIN=20;
 const EMB=/[?&]embed=1/.test(location.search);if(EMB)document.documentElement.classList.add('emb');
 const P=[{n:'백골',c:'#D9D2BE'},{n:'유령',c:'#4FB8AE'},{n:'촛불',c:'#E0A53A'},{n:'저주',c:'#9B6FD6'}];
 const $=id=>document.getElementById(id),cv=$('cv'),ctx=cv.getContext('2d');
@@ -88,7 +88,7 @@ const sSwap=()=>{};
 const sTick=f=>play('tick',1);
 const sEnd=ok=>{};
 
-const BG=[1,2,3,4].map(i=>{const im=new Image();im.src='flashlight/bg'+i+'.jpg';return im;});
+const BG=[1,2,3,4,5,6,7].map(i=>{const im=new Image();im.src='flashlight/bg'+i+'.jpg';return im;});
 const SC=['flashlight/s1.mp4','flashlight/s2.mp4','flashlight/s3.mp4'];let soundOn=true;
 let G=null,raf=0,L={x:W/2,y:H/2},T={x:W/2,y:H/2},lastT=0,seq=[],lastP=-1;
 function seqLane(k){while(seq.length<=k){const p=[0,1,2,3].sort(()=>Math.random()-.5);if(p[0]===lastP){const t=p[0];p[0]=p[1];p[1]=t;}seq.push(...p);lastP=p[3];}return seq[k];}
@@ -99,8 +99,8 @@ function placeStage(i){
 }
 function start(){
   cancelAnimationFrame(raf);ac();seq=[];lastP=-1;
-  const order=[0,1,2,3].sort(()=>Math.random()-.5).slice(0,STAGES);
-  const digs=[8,6,0]; // 방탈출 비밀번호 860
+  const order=[0,1,2,3,4,5,6].sort(()=>Math.random()-.5).slice(0,STAGES);
+  const digs=Array.from({length:STAGES},()=>Math.floor(Math.random()*10)); // 매번 랜덤 4자리 (고정 비밀번호 유출 방지)
   const nums=order.map((b,i)=>{
     // 숫자 위치: 화면 가장자리 피하고, 시작 손전등 위치(중앙)에서는 멀리
     let x,y;do{x=rnd(80,W-80);y=rnd(110,H-80);}while(Math.hypot(x-W/2,y-H/2)<420);
@@ -207,10 +207,10 @@ function finish(ok){
 }
 function showStart(){
   cancelAnimationFrame(raf);G=null;ctx.globalCompositeOperation='source-over';ctx.clearRect(0,0,W,H);
-  const im=BG[Math.floor(Math.random()*4)];if(im.complete)ctx.drawImage(im,0,0,W,H);ctx.fillStyle='rgba(0,0,0,.8)';ctx.fillRect(0,0,W,H);
+  const im=BG[Math.floor(Math.random()*BG.length)];if(im.complete)ctx.drawImage(im,0,0,W,H);ctx.fillStyle='rgba(0,0,0,.8)';ctx.fillRect(0,0,W,H);
   $('rd').textContent='준비';$('who').textContent='-';$('who').style.background='#555';$('msg').textContent=`찾은 숫자 0 / ${STAGES}`;$('tb').style.transform='scaleX(1)';
   $('keys').style.display='none';
-  $('fin').hidden=false;$('fin').innerHTML=`<div class="panel"><h2>어둠 속의 암호</h2><p>3개의 장소에 <b>숫자가 하나씩</b> 숨어 있어요.<br>화면을 보며 숫자를 찾아 <b>기억</b>하세요.<br>3곳을 다 찾으면 숫자를 <b>순서대로 입력</b>해요. 제한 시간은 <b>2분</b>!</p><button class="big" id="go">▶ 시작</button></div>`;
+  $('fin').hidden=false;$('fin').innerHTML=`<div class="panel"><h2>어둠 속의 암호</h2><p>4개의 장소에 <b>숫자가 하나씩</b> 숨어 있어요.<br>화면을 보며 숫자를 찾아 <b>기억</b>하세요.<br>4곳을 다 찾으면 숫자를 <b>순서대로 입력</b>해요. 제한 시간은 <b>2분</b>!</p><button class="big" id="go">▶ 시작</button></div>`;
   $('go').onclick=start;
 }
 const sv=$('sv'),scEl=$('scare');
